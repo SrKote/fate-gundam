@@ -735,7 +735,7 @@ class SheetUI {
   /* partes dinâmicas */
   renderPyramid() {
     const used = new Set(); TIERS.forEach(t => this.state.pilot.skills[t.v].forEach(s => s && used.add(s)));
-    this.$("#pyr").innerHTML = TIERS.map(t => `<div class="tier"><div class="tier-l">${t.n}<b>${sgn(t.v)}</b></div><div class="tier-slots">${this.state.pilot.skills[t.v].map((s, i) => `<div class="sk${s ? " filled" : ""}"><select data-tier="${t.v}" data-idx="${i}" aria-label="Perícia ${t.n}, espaço ${i + 1}"><option value="">—</option>${SKILLS.map(n => `<option${n === s ? " selected" : ""}${used.has(n) && n !== s ? " disabled" : ""}>${n}</option>`).join("")}</select><button type="button" class="die" data-roll="${esc(s)}" ${s ? "" : "disabled"} aria-label="Rolar ${esc(s || "perícia")}">${DIE}</button></div>`).join("")}</div></div>`).join("");
+    this.$("#pyr").innerHTML = TIERS.map(t => `<div class="tier t${t.v}"><div class="tier-l">${t.n}<b>${sgn(t.v)}</b></div><div class="tier-slots">${this.state.pilot.skills[t.v].map((s, i) => `<div class="sk${s ? " filled" : ""}"><select data-tier="${t.v}" data-idx="${i}" aria-label="Perícia ${t.n}, espaço ${i + 1}"><option value="">—</option>${SKILLS.map(n => `<option${n === s ? " selected" : ""}${used.has(n) && n !== s ? " disabled" : ""}>${n}</option>`).join("")}</select><button type="button" class="die" data-roll="${esc(s)}" ${s ? "" : "disabled"} aria-label="Rolar ${esc(s || "perícia")}">${DIE}</button></div>`).join("")}</div></div>`).join("");
   }
   renderStunts(who) {
     const arr = this.state[who].stunts, el = this.$("#st-" + who);
@@ -884,7 +884,7 @@ class SheetUI {
     const st = this.state, p = st.pilot, m = st.ms, c = this.cls(), nt = this.hasNT(), ref = this.refresh();
     const vimg = (src, dflt, alt) => `<img src="${esc(src || dflt)}" alt="${esc(alt)}"${src ? "" : ' class="dflt"'}>`;
     const asp = p.aspects.map((a, i) => `<dt>${P_ASP[i]}</dt><dd class="${a.nt ? "nt" : ""}${a.t.trim() ? "" : " none"}">${a.t.trim() ? esc(a.t) : "—"}</dd>`).join("");
-    const sk = TIERS.map(t => { const list = p.skills[t.v].filter(Boolean); if (!list.length) return ""; return `<div class="vsk-r"><span class="vk">${t.n}<b>${sgn(t.v)}</b></span><div class="vchips">${list.map(n => `<button type="button" class="vchip" data-roll="${esc(n)}" aria-label="Rolar ${esc(n)}">${esc(n)}</button>`).join("")}</div></div>`; }).join("");
+    const sk = TIERS.map(t => { const list = p.skills[t.v].filter(Boolean); if (!list.length) return ""; return `<div class="vsk-r t${t.v}"><span class="vk">${t.n}<b>${sgn(t.v)}</b></span><div class="vchips">${list.map(n => `<button type="button" class="vchip" data-roll="${esc(n)}" aria-label="Rolar ${esc(n)}">${esc(n)}</button>`).join("")}</div></div>`; }).join("");
     const pst = p.stunts.length ? p.stunts.map(x => { const lock = (x.nt && !nt) || (x.psy && !this.msHas("psy")); return `<div class="it${lock ? " locked" : ""}"><b>${esc(x.n || "Sem nome")}</b>${x.nt ? '<span class="tag nt">Newtype</span>' : ""}${lock ? '<span class="tag lock">Travada</span>' : ""}<p>${esc(x.d || "")}</p></div>`; }).join("") : '<p class="vnone">Sem façanhas.</p>';
     this.$("#vc-pilot").innerHTML = `
       <header class="vh">${vimg(this.actorImg(), IMG.pilot, "Retrato do piloto")}<div><span class="vk">Piloto${nt ? " · Newtype" : ""}</span><h2>${esc(p.name || "Sem nome")}</h2>${p.desc ? `<p>${esc(p.desc)}</p>` : ""}

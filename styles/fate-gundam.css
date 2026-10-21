@@ -302,13 +302,22 @@
 .fate-gundam-sheet .vasp dd.nt::before{content:"";position:absolute;left:0;top:.45em;width:8px;height:8px;transform:rotate(45deg);background:var(--nt)}
 .fate-gundam-sheet .vasp dd.none{color:var(--ink-2)}
 @container fg (max-width:500px){.fate-gundam-sheet .vasp{grid-template-columns:minmax(0,1fr)}}
-.fate-gundam-sheet .vsk{display:grid;gap:7px}
-.fate-gundam-sheet .vsk-r{display:grid;grid-template-columns:72px minmax(0,1fr);gap:10px;align-items:center}
-.fate-gundam-sheet .vsk-r .vk{display:flex;align-items:baseline;gap:6px}
-.fate-gundam-sheet .vsk-r .vk b{font:800 22px/1 var(--f-display);color:var(--ink);letter-spacing:0}
-.fate-gundam-sheet .vchips{display:flex;flex-wrap:wrap;gap:6px}
-.fate-gundam-sheet .fg .vchip{border:0;border-left:3px solid var(--fac);background:var(--plate);color:var(--ink);padding:5px 10px;font:600 13.5px var(--f-body);cursor:pointer;transition:background .2s}
-.fate-gundam-sheet .fg .vchip:hover{background:color-mix(in srgb,var(--fac) 14%,var(--plate))}
+/* cor de cada degrau, tirada da pintura de cada facção */
+.fate-gundam-sheet .vsk,.fate-gundam-sheet .pyr{--t4:#C23A2E;--t3:#2448A2;--t2:#B97F0E;--t1:#6F7F99}
+.fate-gundam-sheet[data-faction="zeon"] .vsk,.fate-gundam-sheet[data-faction="zeon"] .pyr{--t4:#9C2C26;--t3:#3F5D3A;--t2:#6E8F4E;--t1:#7D8270}
+.fate-gundam-sheet.theme-dark .vsk,.fate-gundam-sheet.theme-dark .pyr,.theme-dark .fate-gundam-sheet:not(.theme-light) .vsk,.theme-dark .fate-gundam-sheet:not(.theme-light) .pyr{--t4:#E36A5E;--t3:#86A2F0;--t2:#E6B347;--t1:#93A1B9}
+.fate-gundam-sheet.theme-dark[data-faction="zeon"] .vsk,.fate-gundam-sheet.theme-dark[data-faction="zeon"] .pyr,.theme-dark .fate-gundam-sheet:not(.theme-light)[data-faction="zeon"] .vsk,.theme-dark .fate-gundam-sheet:not(.theme-light)[data-faction="zeon"] .pyr{--t4:#E36A5E;--t3:#8DB582;--t2:#B8CE7C;--t1:#A3A890}
+.fate-gundam-sheet .t4{--t:var(--t4)}.fate-gundam-sheet .t3{--t:var(--t3)}.fate-gundam-sheet .t2{--t:var(--t2)}.fate-gundam-sheet .t1{--t:var(--t1)}
+.fate-gundam-sheet .vsk{display:grid;gap:6px}
+.fate-gundam-sheet .vsk-r{display:grid;grid-template-columns:62px minmax(0,1fr);gap:12px;align-items:center}
+.fate-gundam-sheet .vsk-r .vk{display:grid;justify-items:end;line-height:1.15}
+.fate-gundam-sheet .vsk-r .vk b{font:800 22px/1 var(--f-display);color:var(--t);letter-spacing:0}
+.fate-gundam-sheet .vchips{display:flex;justify-content:center;gap:6px}
+.fate-gundam-sheet .fg .vchip{flex:0 0 calc((100% - 18px) / 4);min-width:0;border:0;border-top:3px solid var(--t);background:color-mix(in srgb,var(--t) 13%,var(--plate));color:var(--ink);padding:8px 4px 7px;font:600 14px/1.15 var(--f-head);letter-spacing:.02em;text-align:center;cursor:pointer;overflow-wrap:anywhere;transition:background .2s,transform .15s}
+.fate-gundam-sheet .fg .vchip:hover{background:color-mix(in srgb,var(--t) 26%,var(--plate));transform:translateY(-1px)}
+@container fg (max-width:500px){.fate-gundam-sheet .vsk-r{grid-template-columns:minmax(0,1fr);gap:3px}.fate-gundam-sheet .vsk-r .vk{justify-content:center;grid-auto-flow:column;gap:6px;align-items:baseline}}
+.fate-gundam-sheet .pyr .tier-l b{color:var(--t)}
+.fate-gundam-sheet .pyr .sk.filled{border-bottom-color:var(--t)}
 .fate-gundam-sheet .vlist{display:grid;gap:12px}
 .fate-gundam-sheet .vlist .it b{font:700 15px/1.25 var(--f-head);letter-spacing:.03em}
 .fate-gundam-sheet .vlist .it p{margin:3px 0 0;font-size:13.5px;line-height:1.45}
