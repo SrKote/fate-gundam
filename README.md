@@ -25,6 +25,8 @@ A ficha funciona com qualquer sistema de jogo: os dados ficam guardados num flag
 ## O que tem
 
 - Pirâmide de perícias com Pilotagem no lugar de Condução, Recarga e caixas de estresse calculadas sozinhas.
+- Encaixes de façanha visíveis e a opção de trocar encaixes vazios por Recarga (regra opcional da mesa).
+- **Criador de façanha**: monta a frase nos três moldes do livro (bônus de +2, nova ação, exceção à regra) e confere cada regra enquanto você escolhe.
 - Aspecto Newtype marcado com **NT**, que libera as façanhas Newtype e as armas psicomu.
 - Máquina com cinco sistemas (Mobilidade, Mira, Combate, Sensores, Estrutura), classes, façanhas de sistema e armas.
 - Avarias marcadas tocando no corpo da máquina. Avaria moderada ou severa zera o sistema daquele local.

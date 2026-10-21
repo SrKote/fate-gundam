@@ -68,7 +68,7 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;
 function blank() {
   const dm = () => ({t:"",loc:""});
   return {v:2,faction:"fed",cockpit:false,show:"pilot",opp:2,
-    pilot:{name:"",desc:"",fp:3,aspects:[0,1,2,3,4].map(() => ({t:"",nt:false})),
+    pilot:{name:"",desc:"",fp:3,trade:false,aspects:[0,1,2,3,4].map(() => ({t:"",nt:false})),
       skills:{"4":[""],"3":["",""],"2":["","",""],"1":["","","",""]},stunts:[],
       stress:{f:[0,0,0,0],m:[0,0,0,0]},cons:{s:"",m:"",sv:"",x:""}},
     ms:{name:"",cls:"massa",img:"",aspects:["","",""],sys:{mob:0,mira:0,comb:0,sens:0,estr:0},stunts:[],weapons:[],
@@ -222,11 +222,13 @@ function template() {
 
         <article class="panel" style="--i:3"><div class="in">
           <header class="hd"><h2>Façanhas</h2><span class="kana">特技</span></header>
+          <div class="sock-h"><span class="lbl">Encaixes</span><button type="button" class="toggle" data-id="trade" aria-pressed="false">Trocar encaixes vazios por Recarga</button></div>
+          <div class="sockets" data-id="sockets" aria-live="polite"></div>
           <div data-id="st-pilot"></div>
           <div class="adder">
             <select data-id="lib-pilot" aria-label="Façanha da lista"></select>
             <button type="button" class="btn sm fac" data-add-stunt="pilot">Adicionar</button>
-            <button type="button" class="btn sm ghost" data-blank-stunt="pilot">Em branco</button>
+            <button type="button" class="btn sm" data-build="pilot">Criar façanha</button>
           </div>
         </div></article>
 
@@ -280,7 +282,7 @@ function template() {
           <div class="adder">
             <select data-id="lib-ms" aria-label="Façanha de sistema da lista"></select>
             <button type="button" class="btn sm fac" data-add-stunt="ms">Adicionar</button>
-            <button type="button" class="btn sm ghost" data-blank-stunt="ms">Em branco</button>
+            <button type="button" class="btn sm" data-build="ms">Criar façanha</button>
           </div>
         </div></article>
 
@@ -319,7 +321,7 @@ function manual() {
   const ntList = P_ST.filter(s => s.nt).map(s => `<li><b>${s.n}.</b> ${s.d}</li>`).join("");
   const msList = M_ST.map(s => `<li><b>${s.n}.</b> ${s.d}</li>`).join("");
   const zones = ZONES.map(z => `<span class="zone" style="left:${ZPOS[z][0]}%;top:${ZPOS[z][1]}%">${z}<small>${ZSYS[z] ? "−" + SYSN[ZSYS[z]] : "só aspecto"}</small></span>`).join("");
-  const toc = [["m-fichas","Duas fichas"],["m-cabine","Na cabine"],["m-pilotagem","Pilotagem"],["m-newtype","Newtype"],["m-montar","Montar a máquina"],["m-dano","Dano e reparo"],["m-ponte","A nave e a ponte"],["m-escala","Escala"],["m-minovsky","Minovsky"],["m-escada","Escada"]];
+  const toc = [["m-fichas","Duas fichas"],["m-cabine","Na cabine"],["m-pilotagem","Pilotagem"],["m-facanhas","Façanhas"],["m-newtype","Newtype"],["m-montar","Montar a máquina"],["m-dano","Dano e reparo"],["m-ponte","A nave e a ponte"],["m-escala","Escala"],["m-minovsky","Minovsky"],["m-escada","Escada"]];
   return `<div class="manual">
   <nav class="toc" aria-label="Seções do manual">${toc.map(([id,n]) => `<button type="button" data-goto="${id}">${n}</button>`).join("")}</nav>
   <div class="doc">
@@ -373,6 +375,23 @@ function manual() {
         </tbody>
       </table></div>
       <div class="prose"><p>Lista de perícias: Atirar, Atletismo, Comunicação, Conhecimentos, Contatos, Empatia, Enganar, Furtividade, Investigação, Lutar, Ofícios, Percepção, <b>Pilotagem</b>, Provocar, Recursos, Roubo, Vigor, Vontade. Atletismo não funciona dentro da máquina.</p></div>
+    </div></article>
+
+    <article class="panel" data-sec="m-facanhas"><div class="in">
+      <header class="hd"><h2>Façanhas e Recarga</h2><span class="kana">特技</span></header>
+      <div class="prose">
+        <p><span class="stepn">1</span><b>Encaixes.</b> Todo piloto tem três encaixes de façanha grátis. Cada façanha além do terceiro custa 1 de Recarga, com mínimo 1.</p>
+        <p><span class="stepn">2</span><b>Trocar encaixes por Recarga</b> (regra opcional da mesa). Cada encaixe grátis que fica vazio vira +1 de Recarga: sem nenhuma façanha, a Recarga vai a 6. Serve para quem prefere viver de aspectos e pontos de destino.</p>
+        <p><span class="stepn">3</span><b>Escrever uma façanha.</b> O livro dá três moldes. O <b>Criador de façanha</b> da ficha monta a frase e confere cada regra enquanto você escolhe.</p>
+      </div>
+      <div class="tbl"><table>
+        <thead><tr><th>Molde</th><th>Frase</th><th>Cuidado</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Bônus de +2</td><td>Porque eu…, recebo +2 em [perícia] para [ação] quando [circunstância].</td><td>Uma perícia, uma ação, circunstância estreita.</td></tr>
+          <tr><td class="k">Nova ação</td><td>Porque eu…, posso usar [perícia] para [ação] quando [circunstância].</td><td>A perícia não pode já fazer essa ação.</td></tr>
+          <tr><td class="k">Exceção à regra</td><td>Porque eu…, uma vez por [cena ou sessão], [efeito].</td><td>Efeito forte pede limite de uso; sem limite, fica do tamanho de +2.</td></tr>
+        </tbody>
+      </table></div>
     </div></article>
 
     <article class="panel" data-sec="m-newtype"><div class="in">
@@ -494,10 +513,41 @@ const TRAY = `<button type="button" class="btn pill" data-act="roll4">Rolar 4dF<
   </div>
 </div>`;
 
+/* ---------------- criador de façanha ---------------- */
+// Ações de cada perícia na tabela do Fate Core, com Pilotagem no lugar de Condução.
+const ACTS = {"Atirar":["Superar","Criar vantagem","Atacar"],"Atletismo":["Superar","Criar vantagem","Defender"],"Comunicação":["Superar","Criar vantagem","Defender"],"Conhecimentos":["Superar","Criar vantagem"],"Contatos":["Superar","Criar vantagem","Defender"],"Empatia":["Superar","Criar vantagem","Defender"],"Enganar":["Superar","Criar vantagem","Defender"],"Furtividade":["Superar","Criar vantagem","Defender"],"Investigação":["Superar","Criar vantagem"],"Lutar":["Superar","Criar vantagem","Atacar","Defender"],"Ofícios":["Superar","Criar vantagem"],"Percepção":["Superar","Criar vantagem","Defender"],"Pilotagem":["Superar","Criar vantagem","Defender"],"Provocar":["Superar","Criar vantagem","Atacar"],"Recursos":["Superar","Criar vantagem"],"Roubo":["Superar","Criar vantagem"],"Vigor":["Superar","Criar vantagem"],"Vontade":["Superar","Criar vantagem","Defender"]};
+const ACTIONS = ["Superar","Criar vantagem","Atacar","Defender"];
+const ACTV = {"Superar":"superar","Criar vantagem":"criar vantagem","Atacar":"atacar","Defender":"defender"};
+const FREQ = [["cena","uma vez por cena"],["sessao","uma vez por sessão"],["pd","gastando 1 ponto de destino"],["sempre","sempre"]];
+const BTYPES = [["bonus","Bônus de +2","+2 numa ação, numa circunstância estreita"],["acao","Nova ação","Uma perícia faz o que normalmente não faz"],["excecao","Exceção à regra","Quebra uma regra, com limite de uso"]];
+const BEX = {
+  pilot: {bonus:{why:"treinei manobras em gravidade zero",skill:"Pilotagem",action:"Superar",when:"manobro entre destroços no espaço",name:"Dança nos destroços"},
+          acao:{why:"decorei os manuais de combate da Federação e de Zeon",skill:"Conhecimentos",action:"Defender",when:"um MS de série me ataca com uma manobra padrão",name:"Já li esse manual"},
+          excecao:{why:"conheço cada parafuso da minha máquina",freq:"sessao",effect:"apago uma Avaria moderada no fim de uma cena de manutenção",name:"Mecânico de bordo"}},
+  ms: {bonus:{why:"tem propulsores de longo curso",skill:"Pilotagem",action:"Superar",when:"persegue um alvo em espaço aberto",name:"Pós-combustor"},
+       acao:{why:"tem o ombro blindado para abalroar",skill:"Pilotagem",action:"Atacar",when:"avança em linha reta contra uma máquina na mesma zona",name:"Ombrada"},
+       excecao:{why:"tem um gerador reserva",freq:"sessao",effect:"ignora uma Avaria que zerou um sistema até o fim da cena",name:"Gerador reserva"}}
+};
+const BUILDER = `<div class="fg fg-bcard" role="dialog" aria-modal="true" aria-label="Criador de façanha">
+  <header class="hd"><h2>Criador de façanha</h2><button type="button" class="x" data-act="close-builder" aria-label="Fechar criador">×</button></header>
+  <div class="btypes" data-id="btypes" role="group" aria-label="Tipo de façanha"></div>
+  <div class="bwho"><span class="lbl">Para</span><div class="seg" role="group" aria-label="Para quem é a façanha" data-id="bwho"><button type="button" data-bwho="pilot">Piloto</button><button type="button" data-bwho="ms">Máquina</button></div></div>
+  <div class="sentence" data-id="bsent"></div>
+  <div class="bchecks" data-id="bchecks" aria-live="polite"></div>
+  <div class="bfoot">
+    <label class="fld"><span>Nome da façanha</span><input type="text" data-id="bname" placeholder="Curto e com cara do personagem"></label>
+    <button type="button" class="btn fac" data-act="b-add">Adicionar à ficha</button>
+    <div class="row">
+      <label class="chkbox" data-id="bnt-wrap"><input type="checkbox" data-id="bnt"> Façanha Newtype (só funciona com aspecto NT)</label>
+      <button type="button" class="btn sm ghost" data-act="b-example">Ver um exemplo</button>
+    </div>
+  </div>
+</div>`;
+
 /* ---------------- interface da ficha ---------------- */
 class SheetUI {
-  constructor(app, root, tray) {
-    this.app = app; this.root = root; this.trayEl = tray;
+  constructor(app, root, tray, builder) {
+    this.app = app; this.root = root; this.trayEl = tray; this.bEl = builder; this.B = null;
     this.activeDmg = "l"; this.homes = {}; this.cur = null; this.token = 0;
     this.RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
     this.load();
@@ -506,6 +556,101 @@ class SheetUI {
   $(s, r) { return (r || this.root).querySelector(s.replace(/#([\w-]+)/g, '[data-id="$1"]')); }
   $$(s, r) { return Array.from((r || this.root).querySelectorAll(s.replace(/#([\w-]+)/g, '[data-id="$1"]'))); }
   t$(s) { return this.trayEl.querySelector(s.replace(/#([\w-]+)/g, '[data-id="$1"]')); }
+  b$(s) { return this.bEl.querySelector(s.replace(/#([\w-]+)/g, '[data-id="$1"]')); }
+  b$$(s) { return Array.from(this.bEl.querySelectorAll(s.replace(/#([\w-]+)/g, '[data-id="$1"]'))); }
+
+  /* criador de façanha */
+  openBuilder(who) {
+    this.B = {who, type:"bonus", why:"", skill:"Pilotagem", action:"Superar", when:"", freq:"cena", effect:"", name:"", nt:false, last:{}};
+    this.b$("#bname").value = ""; this.b$("#bnt").checked = false;
+    this.renderBuilder(); this.bEl.hidden = false;
+    const f = this.b$(".sentence .slot"); if (f) f.focus();
+  }
+  subj() { return this.B.who === "ms" ? "Porque esta máquina" : "Porque eu"; }
+  slotIn(k, ph) { const B = this.B; return `<input type="text" class="slot${B[k] ? " filled" : ""}" data-b="${k}" value="${esc(B[k])}" placeholder="${ph}" aria-label="${ph}">`; }
+  slotSel(k, opts) { const lb = {skill:"Perícia", action:"Ação", freq:"Frequência"}[k]; return `<select class="slot filled" data-b="${k}" aria-label="${lb}">${opts.map(([v, n]) => `<option value="${esc(v)}"${v === this.B[k] ? " selected" : ""}>${esc(n)}</option>`).join("")}</select>`; }
+  fitSlot(el) { el.style.width = Math.max(8, Math.min(48, (el.value || el.placeholder).length + 2)) + "ch"; }
+  renderBuilder() {
+    const B = this.B, who = B.who === "ms";
+    this.b$("#btypes").innerHTML = BTYPES.map(([k, n, d]) => `<button type="button" class="btype" data-btype="${k}" aria-pressed="${k === B.type}"><b>${n}</b><small>${d}</small></button>`).join("");
+    this.b$$("[data-id='bwho'] button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.bwho === B.who)));
+    this.b$("#bnt-wrap").hidden = who;
+    const sk = this.slotSel("skill", SKILLS.map(s => [s, s])), ac = this.slotSel("action", ACTIONS.map(a => [a, ACTV[a]]));
+    const why = this.slotIn("why", who ? "tem o quê" : "o que você é ou fez");
+    let h;
+    if (B.type === "bonus") h = `${this.subj()} ${why}, ${who ? "o piloto recebe" : "recebo"} <span class="plus">+2</span> em ${sk} para ${ac} quando ${this.slotIn("when", "em que situação")}.`;
+    else if (B.type === "acao") h = `${this.subj()} ${why}, ${who ? "o piloto pode" : "posso"} usar ${sk} para ${ac} quando ${this.slotIn("when", "em que situação")}.`;
+    else h = `${this.subj()} ${why}, ${this.slotSel("freq", FREQ)} ${this.slotIn("effect", "qual regra você quebra")}.`;
+    this.b$("#bsent").innerHTML = h;
+    this.b$$(".sentence input.slot").forEach(el => this.fitSlot(el));
+    this.renderChecks();
+  }
+  stuntText() {
+    const B = this.B, who = B.who === "ms";
+    if (B.type === "bonus") return `${this.subj()} ${B.why}, ${who ? "o piloto recebe" : "recebo"} +2 em ${B.skill} para ${ACTV[B.action]} quando ${B.when}.`;
+    if (B.type === "acao") return `${this.subj()} ${B.why}, ${who ? "o piloto pode" : "posso"} usar ${B.skill} para ${ACTV[B.action]} quando ${B.when}.`;
+    const f = B.freq === "sempre" ? "" : FREQ.find(x => x[0] === B.freq)[1] + ", ";
+    return `${this.subj()} ${B.why}, ${f}${B.effect}.`;
+  }
+  builderChecks() {
+    const B = this.B, C = [], t = B.type, why = B.why.trim(), when = B.when.trim();
+    C.push(why ? {s:"ok", t:"A façanha nasce de quem usa: a justificativa está na ficção."} : {s:"fail", t:"Complete o \"porque\": o livro pede que a façanha venha do personagem ou da máquina."});
+    if (t !== "excecao") {
+      if (!when) C.push({s:"fail", t:"Falta a circunstância. Sem ela, o efeito vale sempre e passa do limite de uma façanha."});
+      else if (when.length < 14) C.push({s:"warn", t:"Circunstância curta. Diga quando, onde ou contra quem, para ela não valer o tempo todo."});
+      else C.push({s:"ok", t:"Circunstância estreita: o efeito aparece em parte das cenas, não em todas."});
+    }
+    if (t === "acao") {
+      const has = (ACTS[B.skill] || []).includes(B.action);
+      C.push(has ? {s:"fail", t:`${B.skill} já pode ${ACTV[B.action]} sem façanha. Escolha outra ação ou troque para Bônus de +2.`} : {s:"ok", t:`${B.skill} normalmente não pode ${ACTV[B.action]}: é uma ação nova de verdade.`});
+    }
+    if (t === "bonus" && B.action === "Atacar") C.push({s:"warn", t:"Bônus de ataque pesa em todo conflito. Deixe a circunstância bem estreita."});
+    if (t === "excecao") {
+      C.push(B.effect.trim() ? {s:"ok", t:"A regra quebrada está escrita."} : {s:"fail", t:"Escreva o efeito: que regra do jogo a façanha quebra."});
+      C.push(B.freq === "sempre" ? {s:"warn", t:"Efeito sem limite de uso: mantenha do tamanho de +2 ou 2 tensões."} : {s:"ok", t:"Efeito forte com limite de uso, como o livro recomenda."});
+    }
+    if (B.who === "pilot" && B.nt && !this.hasNT()) C.push({s:"warn", t:"Façanha Newtype: fica travada até a ficha ter um aspecto NT."});
+    C.push(B.name.trim() ? {s:"ok", t:"Tem nome."} : {s:"fail", t:"Dê um nome curto à façanha."});
+    return C;
+  }
+  renderChecks() {
+    const B = this.B, C = this.builderChecks(), sym = {ok:"✓", warn:"!", fail:"×"};
+    this.b$("#bchecks").innerHTML = C.map((c, i) => `<div class="chk${c.s === "ok" && B.last[i] && B.last[i] !== "ok" ? " stamp" : ""}" data-s="${c.s}"><i>${sym[c.s]}</i><span>${esc(c.t)}</span></div>`).join("");
+    B.last = C.map(c => c.s);
+    this.b$('[data-act="b-add"]').disabled = C.some(c => c.s === "fail");
+  }
+  builderExample() { const ex = BEX[this.B.who][this.B.type]; Object.assign(this.B, ex); this.b$("#bname").value = ex.name; this.renderBuilder(); }
+  builderAdd() {
+    if (!this.app.isEditable || this.builderChecks().some(c => c.s === "fail")) return;
+    const w = this.B.who, s = {n:this.B.name.trim(), d:this.stuntText()}; if (w === "pilot" && this.B.nt) s.nt = true;
+    this.state[w].stunts.push(s); this.renderStunts(w); this.renderDerived(); this.save();
+    this.bEl.hidden = true;
+    const rows = this.$$(`[data-id='st-${w}'] .stunt`), last = rows[rows.length - 1];
+    if (last) { last.classList.add("fresh"); last.scrollIntoView({block:"nearest"}); }
+    ui.notifications.info(`Façanha adicionada: ${s.n}`);
+  }
+  attachBuilder() {
+    const E = this.bEl;
+    E.addEventListener("input", e => {
+      const el = e.target, B = this.B; if (!B) return;
+      if (el.dataset.b) { const k = el.dataset.b, was = !!B[k]; B[k] = el.value;
+        if (el.tagName === "INPUT") { this.fitSlot(el); el.classList.toggle("filled", !!el.value); if (!was && el.value && !this.RM) { el.classList.remove("filled"); void el.offsetWidth; el.classList.add("filled"); } }
+        this.renderChecks(); }
+      else if (el.dataset.id === "bname") { B.name = el.value; this.renderChecks(); }
+      else if (el.dataset.id === "bnt") { B.nt = el.checked; this.renderChecks(); }
+    });
+    E.addEventListener("click", e => {
+      if (e.target === E) { E.hidden = true; return; }
+      const t = e.target.closest("button"); if (!t) return;
+      const d = t.dataset;
+      if (d.btype) { this.B.type = d.btype; this.renderBuilder(); }
+      else if (d.bwho) { this.B.who = d.bwho; this.renderBuilder(); }
+      else if (d.act === "close-builder") E.hidden = true;
+      else if (d.act === "b-example") this.builderExample();
+      else if (d.act === "b-add") this.builderAdd();
+    });
+    E.addEventListener("keydown", e => { if (e.key === "Escape") { e.stopPropagation(); E.hidden = true; } });
+  }
 
   /* estado */
   load() {
@@ -553,6 +698,7 @@ class SheetUI {
     this.buildStatic();
     this.renderAll();
     this.attach();
+    this.attachBuilder();
     if (!this.app.isEditable) this.$$("input,select,textarea").forEach(el => el.disabled = true);
   }
   buildStatic() {
@@ -603,7 +749,18 @@ class SheetUI {
   renderTrack(id, path, count) {
     this.$$(`#${id} .box`).forEach((b, i) => { const v = !!this.getPath(path + "." + i); b.disabled = i >= count; b.setAttribute("aria-pressed", String(v && i < count)); });
   }
-  refresh() { const n = this.state.pilot.stunts.length; return Math.max(1, 3 - Math.max(0, n - 3)); }
+  refresh() { const n = this.state.pilot.stunts.length; if (n > 3) return Math.max(1, 3 - (n - 3)); return this.state.pilot.trade ? 3 + (3 - n) : 3; }
+  renderSockets() {
+    const st = this.state.pilot.stunts, n = st.length, trade = !!this.state.pilot.trade, cells = [];
+    this.$("#trade").setAttribute("aria-pressed", String(trade));
+    for (let i = 0; i < Math.max(3, n); i++) {
+      const s = st[i];
+      if (s) cells.push(`<div class="sock ${i < 3 ? "full" : "paid"}"><b>${esc(s.n || "Sem nome")}</b>${i < 3 ? "grátis" : "−1 Recarga"}</div>`);
+      else if (trade) cells.push(`<div class="sock traded"><i></i>+1 Recarga</div>`);
+      else cells.push(`<div class="sock">Encaixe livre</div>`);
+    }
+    this.$("#sockets").innerHTML = cells.join("");
+  }
   renderFP() {
     const ref = this.refresh(), fp = this.state.pilot.fp;
     this.$("#fp-n").textContent = fp;
@@ -622,8 +779,8 @@ class SheetUI {
   renderDerived() {
     const st = this.state, n = st.pilot.stunts.length, extra = Math.max(0, n - 3);
     this.$("#refresh").textContent = this.refresh();
-    this.$("#refresh-note").textContent = n <= 3 ? `${3 - n} de 3 façanhas grátis livres` : `${extra} façanha${extra > 1 ? "s" : ""} paga${extra > 1 ? "s" : ""} com Recarga`;
-    this.renderFP();
+    this.$("#refresh-note").textContent = n > 3 ? `${extra} façanha${extra > 1 ? "s" : ""} paga${extra > 1 ? "s" : ""} com Recarga` : (st.pilot.trade && n < 3 ? `3 + ${3 - n} de encaixe${3 - n > 1 ? "s" : ""} trocado${3 - n > 1 ? "s" : ""}` : `${3 - n} de 3 encaixes grátis livres`);
+    this.renderFP(); this.renderSockets();
     const boxes = r => 2 + (r >= 1 ? 1 : 0) + (r >= 3 ? 1 : 0);
     const rv = this.rating("Vigor"), rw = this.rating("Vontade");
     this.renderTrack("tr-f", "pilot.stress.f", boxes(rv)); this.$("#tn-f").textContent = `Vigor ${ladder(rv)}: ${boxes(rv)} caixas`;
@@ -844,7 +1001,9 @@ class SheetUI {
       if (d.prompt) { game.clipboard.copyPlainText(this.buildPrompt(d.prompt)); ui.notifications.info(d.prompt === "pilot" ? "Prompt do retrato copiado." : "Prompt da máquina copiado."); return; }
       if (d.act === "roll4") return this.roll("4dF", []);
       if (!edit) return;
-      if (d.fac) { s.faction = d.fac; this.renderFaction(); this.save(); }
+      if (d.build) this.openBuilder(d.build);
+      else if (t.dataset.id === "trade") { s.pilot.trade = !s.pilot.trade; this.renderDerived(); this.save(); }
+      else if (d.fac) { s.faction = d.fac; this.renderFaction(); this.save(); }
       else if (d.fp) { s.pilot.fp = Math.max(0, s.pilot.fp + (+d.fp)); this.renderFP(); this.save(); }
       else if (d.nt != null) { const i = +d.nt, on = !s.pilot.aspects[i].nt; s.pilot.aspects.forEach(a => a.nt = false); s.pilot.aspects[i].nt = on; this.renderNT(on ? i : null); this.save(); }
       else if (d.box) { if (t.disabled) return; const v = !this.getPath(d.box); this.setPath(d.box, v ? 1 : 0); t.setAttribute("aria-pressed", String(v)); this.save(); }
@@ -891,7 +1050,10 @@ class FateGundamSheet extends foundry.applications.sheets.ActorSheetV2 {
       let tray = this.element.querySelector(":scope > .fg-tray");
       if (!tray) { tray = document.createElement("div"); tray.className = "fg-tray"; this.element.appendChild(tray); }
       tray.innerHTML = TRAY;
-      this.ui = new SheetUI(this, content, tray);
+      let builder = this.element.querySelector(":scope > .fg-builder");
+      if (!builder) { builder = document.createElement("div"); builder.className = "fg-builder"; builder.hidden = true; this.element.appendChild(builder); }
+      builder.innerHTML = BUILDER;
+      this.ui = new SheetUI(this, content, tray, builder);
       this.ui.init();
       return;
     }
