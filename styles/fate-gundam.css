@@ -386,7 +386,15 @@
 .fate-gundam-sheet .scalefig figure{margin:0;display:grid;justify-items:center;gap:4px}
 .fate-gundam-sheet .scalefig img{width:auto;border:0;mix-blend-mode:var(--img-blend);filter:var(--img-filter)}
 .fate-gundam-sheet .scalefig figcaption{font:700 11px var(--f-head);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);text-align:center}
-.fate-gundam-sheet .mfig{max-width:300px;margin:0 0 12px}
+.fate-gundam-sheet .mfigs{display:grid;grid-template-columns:minmax(0,.75fr) minmax(0,1.5fr);gap:12px 16px;margin:0 0 12px;align-items:end}
+.fate-gundam-sheet .mfigs .mfig-c:first-child{grid-row:span 2;align-self:center}
+.fate-gundam-sheet .mfig-c{margin:0;display:grid;gap:4px}
+.fate-gundam-sheet .mfig-c figcaption{font:700 11px var(--f-head);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);text-align:center}
+.fate-gundam-sheet .mfig{max-width:300px;margin:0 auto}
+.fate-gundam-sheet .mfigs .mfig-c:not(:first-child) .mfig{max-width:none}
+@container fg (max-width:600px){.fate-gundam-sheet .mfigs{grid-template-columns:minmax(0,1fr)}.fate-gundam-sheet .mfigs .mfig-c:first-child{grid-row:auto}}
+.fate-gundam-sheet .dmg-wrap.wide{grid-template-columns:minmax(0,1fr)}
+.fate-gundam-sheet .dmg-wrap.wide .dfig{max-width:520px}
 .fate-gundam-sheet .mfig .zone{cursor:default}
 
 /* mensagem de chat */

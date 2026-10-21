@@ -30,9 +30,13 @@ const SYS = [
   {k:"estr",n:"Estrutura",h:"Não soma; define as caixas de estresse"}
 ];
 const SYSN = {mob:"Mobilidade",mira:"Mira",comb:"Combate",sens:"Sensores",estr:"Estrutura"};
-const ZONES = ["Cabeça","Propulsores","Tronco","Braço D","Braço E","Pernas"];
-const ZPOS = {"Cabeça":[50,6],"Propulsores":[21,9],"Tronco":[50,31],"Braço D":[13,43],"Braço E":[87,26],"Pernas":[50,70]};
-const ZSYS = {"Cabeça":"sens","Propulsores":"mob","Tronco":null,"Braço D":"mira","Braço E":"comb","Pernas":"mob"};
+// Corpo de avarias de cada tipo de máquina: [local, x%, y%, sistema que zera]
+const BODIES = {
+  ms: {img:ASSET("ms.webp"), kind:"Mobile suit", kana:"モビルスーツ", zones:[["Cabeça",50,6,"sens"],["Propulsores",21,9,"mob"],["Tronco",50,31,null],["Braço D",13,43,"mira"],["Braço E",87,26,"comb"],["Pernas",50,70,"mob"]]},
+  ma: {img:ASSET("ma.webp"), kind:"Mobile armor", kana:"モビルアーマー", wide:true, zones:[["Sensor",40,61,"sens"],["Casco",53,36,null],["Canhões",16,50,"mira"],["Propulsores",87,21,"mob"]]},
+  nave: {img:ASSET("nave.webp"), kind:"Nave de guerra", kana:"戦艦", wide:true, zones:[["Ponte",55,35,"sens"],["Torres",72,47,"mira"],["Casco",45,71,null],["Hangar",21,61,null],["Motores",89,69,"mob"]]}
+};
+const bodyKey = c => c === "ma" ? "ma" : c === "nave" ? "nave" : "ms";
 const DSLOTS = [["l",2,"Suave"],["m",4,"Moderada"],["s",6,"Severa"],["sh",2,"Escudo"]];
 const P_ASP = ["Conceito","Problema","Aspecto","Aspecto","Aspecto"];
 const P_ASP_PH = ["Quem você é, em uma linha","O que complica sua vida","","",""];
@@ -246,7 +250,7 @@ function template() {
 
       <div class="col" data-id="col-ms">
         <article class="panel" style="--i:1"><div class="in">
-          <header class="hd"><h2 data-id="ms-h">Mobile suit</h2><span class="kana">モビルスーツ</span></header>
+          <header class="hd"><h2 data-id="ms-h">Mobile suit</h2><span class="kana" data-id="ms-kana">モビルスーツ</span></header>
           <figure class="slot-img hero" data-id="img-ms">
             <img alt="Imagem da máquina">
             <span class="decal" data-id="ms-decal"></span>
@@ -296,8 +300,8 @@ function template() {
         <article class="panel" style="--i:6" data-id="pn-mdmg"><div class="in">
           <header class="hd red"><h2>Estrutura e avarias</h2><span class="kana">損傷</span></header>
           <div class="track-b"><div class="track-h"><span class="lbl">Estresse estrutural</span><small data-id="tn-ms"></small></div><div class="track" data-id="tr-ms"></div></div>
-          <div class="dmg-wrap">
-            <div class="dfig" data-id="dfig"><img src="${IMG.ms}" alt="Diagrama do mobile suit para marcar avarias"></div>
+          <div class="dmg-wrap" data-id="dmg-wrap">
+            <div class="dfig" data-id="dfig"></div>
             <div class="cons" data-id="cons-ms"></div>
           </div>
           <p class="hint">Escolha a linha da avaria e toque no corpo. Avaria moderada ou severa zera o sistema daquele local até o reparo.</p>
@@ -320,7 +324,7 @@ function manual() {
   const clsRows = Object.values(CLASSES).map(c => `<tr><td class="k">${c.n}</td><td>${c.ex}</td><td class="num">${c.scale}</td><td>${c.perk}</td></tr>`).join("");
   const ntList = P_ST.filter(s => s.nt).map(s => `<li><b>${s.n}.</b> ${s.d}</li>`).join("");
   const msList = M_ST.map(s => `<li><b>${s.n}.</b> ${s.d}</li>`).join("");
-  const zones = ZONES.map(z => `<span class="zone" style="left:${ZPOS[z][0]}%;top:${ZPOS[z][1]}%">${z}<small>${ZSYS[z] ? "−" + SYSN[ZSYS[z]] : "só aspecto"}</small></span>`).join("");
+  const figs = Object.values(BODIES).map(b => `<figure class="mfig-c"><div class="dfig mfig"><img src="${b.img}" alt="${b.kind} com os locais de avaria">${b.zones.map(([z, x, y, k]) => `<span class="zone" style="left:${x}%;top:${y}%">${z}<small>${k ? "−" + SYSN[k] : "só aspecto"}</small></span>`).join("")}</div><figcaption>${b.kind}</figcaption></figure>`).join("");
   const toc = [["m-fichas","Duas fichas"],["m-cabine","Na cabine"],["m-pilotagem","Pilotagem"],["m-facanhas","Façanhas"],["m-newtype","Newtype"],["m-montar","Montar a máquina"],["m-dano","Dano e reparo"],["m-ponte","A nave e a ponte"],["m-escala","Escala"],["m-minovsky","Minovsky"],["m-escada","Escada"]];
   return `<div class="manual">
   <nav class="toc" aria-label="Seções do manual">${toc.map(([id,n]) => `<button type="button" data-goto="${id}">${n}</button>`).join("")}</nav>
@@ -426,10 +430,10 @@ function manual() {
 
     <article class="panel" data-sec="m-dano"><div class="in">
       <header class="hd red"><h2>Dano e reparo</h2><span class="kana">損傷</span></header>
-      <div class="dfig mfig"><img src="${IMG.ms}" alt="Mobile suit com os locais de avaria e os sistemas que cada um derruba">${zones}</div>
+      <div class="mfigs">${figs}</div>
       <div class="prose">
         <p><span class="stepn">1</span><b>Estrutura</b> define as caixas: +0 dá duas, +1 dá três, +2 dá quatro.</p>
-        <p><span class="stepn">2</span><b>Avaria tem local.</b> Avaria moderada ou severa zera o sistema daquele local até o reparo: cabeça tira Sensores, braço direito tira Mira, braço esquerdo tira Combate, pernas e propulsores tiram Mobilidade. Tronco não derruba sistema. Avaria suave é só aspecto.</p>
+        <p><span class="stepn">2</span><b>Avaria tem local.</b> Cada tipo de máquina tem o próprio corpo, desenhado acima. Avaria moderada ou severa zera o sistema daquele local até o reparo. No mobile suit, cabeça tira Sensores, braço direito tira Mira, braço esquerdo tira Combate, pernas e propulsores tiram Mobilidade. Na mobile armor, sensor, canhões e propulsores. Na nave, ponte tira Sensores, torres tiram Mira, motores tiram Mobilidade; hangar e casco não derrubam sistema, mas uma avaria no hangar vira o aspecto que impede lançar ou recolher MS. Avaria suave é só aspecto.</p>
         <p><span class="stepn">3</span><b>O piloto</b> só marca estresse físico quando o atacante cria antes a vantagem <i>Cabine exposta</i>, ou quando a máquina é tirada de ação.</p>
         <p><span class="stepn">4</span><b>Ejetar é conceder.</b> Ganha 1 ponto de destino mais 1 por avaria da máquina. A campanha ganha o aspecto <i>Sem máquina</i> até alguém conseguir outra: uma cena de Recursos ou de Contatos, contra Ótimo (+4) para produção em massa e Fantástico (+6) para o resto.</p>
       </div>
@@ -687,7 +691,10 @@ class SheetUI {
   cls() { return CLASSES[this.state.ms.cls]; }
   sysUsed() { return Object.values(this.state.ms.sys).reduce((a, b) => a + b, 0); }
   dslots() { return DSLOTS.filter(([k]) => k !== "sh" || this.msHas("escudo")); }
-  downBy(k) { for (const [slot, v] of DSLOTS) { const d = this.state.ms.dmg[slot]; if (v >= 4 && d.loc && ZSYS[d.loc] === k) return d.loc; } return null; }
+  body() { return BODIES[bodyKey(this.state.ms.cls)]; }
+  zsys(z) { const e = this.body().zones.find(x => x[0] === z); return e ? e[3] : null; }
+  zoneOk(z) { return this.body().zones.some(x => x[0] === z); }
+  downBy(k) { for (const [slot, v] of DSLOTS) { const d = this.state.ms.dmg[slot]; if (v >= 4 && d.loc && this.zoneOk(d.loc) && this.zsys(d.loc) === k) return d.loc; } return null; }
   eff(k) { return this.downBy(k) ? 0 : this.state.ms.sys[k]; }
   isShip() { return this.state.ms.cls === "nave"; }
   P(n) { return {l:n, v:this.rating(n)}; }
@@ -709,7 +716,6 @@ class SheetUI {
     const pc = [["s",2,"Suave",""],["m",4,"Moderada",""],["sv",6,"Severa",""],["x",2,"Extra","Vigor ou Vontade +5"]];
     this.$("#cons-pilot").innerHTML = pc.map(([k, v, n, sub]) => `<div class="con" data-con="${k}"><span class="v">${v}</span><span class="n">${n}${sub ? `<small>${sub}</small>` : ""}</span><input type="text" data-bind="pilot.cons.${k}" aria-label="Consequência ${n}"></div>`).join("");
     this.$("#cons-ms").innerHTML = DSLOTS.map(([k, v, n]) => `<div class="dcon" data-slot="${k}"><span class="v">${v}</span><div class="top"><span class="n">${n}</span><button type="button" class="loc" data-clearloc="${k}" aria-label="Local da avaria ${n}"></button></div><input type="text" data-bind="ms.dmg.${k}.t" aria-label="Avaria ${n}" placeholder="${k === "sh" ? "Escudo destruído" : "O que quebrou"}"></div>`).join("");
-    this.$("#dfig").insertAdjacentHTML("beforeend", ZONES.map(z => `<button type="button" class="zone" data-zone="${z}" style="left:${ZPOS[z][0]}%;top:${ZPOS[z][1]}%">${z}<small></small></button>`).join(""));
     this.$("#ms-cls").innerHTML = Object.entries(CLASSES).map(([k, c]) => `<option value="${k}">${c.n}</option>`).join("");
     this.$("#lib-pilot").innerHTML = `<optgroup label="Piloto">${P_ST.filter(s => !s.nt).map(s => `<option value="${s.id}">${s.n}</option>`).join("")}</optgroup><optgroup label="Newtype (requer aspecto NT)">${P_ST.filter(s => s.nt).map(s => `<option value="${s.id}">${s.n}</option>`).join("")}</optgroup>`;
     this.$("#lib-ms").innerHTML = M_ST.map(s => `<option value="${s.id}">${s.n}</option>`).join("");
@@ -767,10 +773,17 @@ class SheetUI {
     this.$("#fp-pips").innerHTML = Array.from({length:Math.max(ref, fp)}, (_, i) => `<i class="pip${i < fp ? " on" : ""}"></i>`).join("");
     this.$('[data-fp="-1"]').disabled = fp <= 0;
   }
+  renderBodyFig() {
+    const k = bodyKey(this.state.ms.cls); if (k === this.shownBody) return; this.shownBody = k;
+    const b = BODIES[k];
+    this.$("#dmg-wrap").classList.toggle("wide", !!b.wide);
+    this.$("#dfig").innerHTML = `<img src="${b.img}" alt="Diagrama de ${b.kind.toLowerCase()} para marcar avarias">` + b.zones.map(([z, x, y]) => `<button type="button" class="zone" data-zone="${z}" style="left:${x}%;top:${y}%">${z}<small></small></button>`).join("");
+  }
   renderDamage() {
-    const sev = {}; DSLOTS.forEach(([k, v]) => { const d = this.state.ms.dmg[k]; if (d.loc && (k !== "sh" || this.msHas("escudo"))) sev[d.loc] = Math.max(sev[d.loc] || 0, v); });
+    this.renderBodyFig();
+    const sev = {}; DSLOTS.forEach(([k, v]) => { const d = this.state.ms.dmg[k]; if (d.loc && this.zoneOk(d.loc) && (k !== "sh" || this.msHas("escudo"))) sev[d.loc] = Math.max(sev[d.loc] || 0, v); });
     this.$$("[data-id='dfig'] .zone").forEach(z => { const n = z.dataset.zone, s = sev[n] || 0; if (s) z.dataset.sev = s; else delete z.dataset.sev;
-      this.$("small", z).textContent = s >= 4 && ZSYS[n] ? `−${SYSN[ZSYS[n]]}` : (s ? "avariado" : "");
+      this.$("small", z).textContent = s >= 4 && this.zsys(n) ? `−${SYSN[this.zsys(n)]}` : (s ? "avariado" : "");
       z.setAttribute("aria-label", `${n}${s ? ", avariado" : ""}. Marcar na avaria selecionada`); });
     this.$$("[data-id='cons-ms'] .dcon").forEach(row => { const k = row.dataset.slot, d = this.state.ms.dmg[k];
       row.hidden = k === "sh" && !this.msHas("escudo"); row.classList.toggle("active", k === this.activeDmg);
@@ -790,7 +803,7 @@ class SheetUI {
     this.renderTrack("tr-ms", "ms.stress", mcount); this.$("#tn-ms").textContent = `Estrutura ${sgn(e)}: ${mcount} caixas`;
     this.$("#ms-scale").textContent = c.scale; this.$("#lk-scale").textContent = c.scale;
     this.$("#cls-perk").innerHTML = `<b>${c.n}</b>${c.perk}`;
-    this.$("#ms-h").textContent = this.isShip() ? "Nave" : "Mobile suit"; this.$("#lk-kind").textContent = this.isShip() ? "Nave" : "Mobile suit";
+    this.$("#ms-h").textContent = this.body().kind; this.$("#ms-kana").textContent = this.body().kana; this.$("#lk-kind").textContent = this.body().kind;
     const ns = st.ms.stunts.length, lim = this.$("#ms-limit");
     lim.textContent = ns > c.st ? `${ns} de ${c.st} façanhas: acima do limite da classe` : `${ns} de ${c.st} façanhas da classe`;
     lim.classList.toggle("over", ns > c.st);
@@ -812,7 +825,7 @@ class SheetUI {
     const pimg = this.actorImg();
     const fp = this.$("#img-pilot img"); fp.src = pimg || IMG.pilot; fp.classList.toggle("dflt", !pimg);
     this.$("#p-dflt").hidden = !!pimg;
-    const fm = this.$("#img-ms img"), mimg = this.state.ms.img; fm.src = mimg || IMG.ms; fm.classList.toggle("dflt", !mimg);
+    const fm = this.$("#img-ms img"), mimg = this.state.ms.img; fm.src = mimg || this.body().img; fm.classList.toggle("dflt", !mimg);
     this.$('[data-rmimg="ms"]').hidden = !mimg;
     this.renderLink();
   }
@@ -952,7 +965,7 @@ class SheetUI {
       return `Retrato de personagem no estilo de anime de robôs do fim dos anos 1970: cel pintado à mão, cores chapadas, sombras duras e traço fino. Meio corpo, olhar para o lado, expressão contida. Personagem: ${p.name || "piloto sem nome"}. ${p.desc || ""} Conceito: ${p.aspects[0].t || "piloto de mobile suit"}. Traje de piloto de ${st.faction === "zeon" ? "Zeon" : "Federação Terrestre"}. Fundo liso cinza-azulado, sem texto, sem logotipo, proporção 3:4.`.replace(/\s+/g, " ").trim();
     }
     const m = st.ms;
-    return `Ilustração de ${this.isShip() ? "nave de guerra espacial" : "robô gigante"} no estilo de manual de montagem de kit japonês: lineart limpo, cores chapadas com sombra de cel, linhas de painel da blindagem visíveis. Vista frontal em 3/4, corpo inteiro. Máquina: ${m.name || "mobile suit"} (${this.cls().n.toLowerCase()}). ${m.aspects[0] || ""}. ${m.aspects[1] ? "Detalhe visível do defeito: " + m.aspects[1] + "." : ""} Cores: ${st.faction === "zeon" ? "verde-oliva com detalhes em vinho" : "branco, azul e vermelho com detalhes amarelos"}. Fundo branco, sem texto, sem logotipo, proporção 4:3.`.replace(/\s+/g, " ").trim();
+    return `Ilustração de ${this.isShip() ? "nave de guerra espacial" : st.ms.cls === "ma" ? "mobile armor (máquina de guerra gigante sem forma humana)" : "robô gigante"} no estilo de manual de montagem de kit japonês: lineart limpo, cores chapadas com sombra de cel, linhas de painel da blindagem visíveis. Vista frontal em 3/4, corpo inteiro. Máquina: ${m.name || "mobile suit"} (${this.cls().n.toLowerCase()}). ${m.aspects[0] || ""}. ${m.aspects[1] ? "Detalhe visível do defeito: " + m.aspects[1] + "." : ""} Cores: ${st.faction === "zeon" ? "verde-oliva com detalhes em vinho" : "branco, azul e vermelho com detalhes amarelos"}. Fundo branco, sem texto, sem logotipo, proporção 4:3.`.replace(/\s+/g, " ").trim();
   }
   pickImage(w) {
     const FP = foundry.applications.apps.FilePicker.implementation;
@@ -983,7 +996,7 @@ class SheetUI {
       const el = e.target;
       if (el.dataset.tier) { st().pilot.skills[el.dataset.tier][+el.dataset.idx] = el.value; this.renderPyramid(); this.renderDerived(); this.save(); }
       else if (el.dataset.bind && el.dataset.bind.startsWith("ms.weapons")) { if (el.hasAttribute("data-num")) el.value = this.getPath(el.dataset.bind); this.renderCombat(); }
-      else if (el.dataset.id === "ms-cls") { st().ms.cls = el.value; Object.keys(st().ms.sys).forEach(k => st().ms.sys[k] = Math.min(st().ms.sys[k], sysMax(k, el.value))); this.renderSys(); this.renderDerived(); this.save(); }
+      else if (el.dataset.id === "ms-cls") { st().ms.cls = el.value; let lost = 0; Object.values(st().ms.dmg).forEach(d => { if (d.loc && !this.zoneOk(d.loc)) { d.loc = ""; lost++; } }); if (lost) ui.notifications.info(`${lost} local${lost > 1 ? "is" : ""} de avaria não existe${lost > 1 ? "m" : ""} neste corpo e foi${lost > 1 ? "ram" : ""} limpo${lost > 1 ? "s" : ""}.`); this.renderImages(); Object.keys(st().ms.sys).forEach(k => st().ms.sys[k] = Math.min(st().ms.sys[k], sysMax(k, el.value))); this.renderSys(); this.renderDerived(); this.save(); }
     });
     R.addEventListener("click", e => {
       const row = e.target.closest(".dcon");

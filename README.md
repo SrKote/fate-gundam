@@ -29,7 +29,7 @@ A ficha funciona com qualquer sistema de jogo: os dados ficam guardados num flag
 - **Criador de façanha**: monta a frase nos três moldes do livro (bônus de +2, nova ação, exceção à regra) e confere cada regra enquanto você escolhe.
 - Aspecto Newtype marcado com **NT**, que libera as façanhas Newtype e as armas psicomu.
 - Máquina com cinco sistemas (Mobilidade, Mira, Combate, Sensores, Estrutura), classes, façanhas de sistema e armas.
-- Avarias marcadas tocando no corpo da máquina. Avaria moderada ou severa zera o sistema daquele local.
+- Avarias marcadas tocando no corpo da máquina, com um corpo para cada tipo: mobile suit, mobile armor e nave de guerra. Avaria moderada ou severa zera o sistema daquele local.
 - Modo de combate com escala do oponente, invocação +2, rerrolagem e ejeção (conceder).
 - Manual completo da adaptação dentro da própria ficha.
 
