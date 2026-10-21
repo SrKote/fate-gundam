@@ -31,6 +31,7 @@ A ficha funciona com qualquer sistema de jogo: os dados ficam guardados num flag
 - Máquina com cinco sistemas (Mobilidade, Mira, Combate, Sensores, Estrutura), classes, façanhas de sistema e armas.
 - Avarias marcadas tocando no corpo da máquina, com um corpo para cada tipo: mobile suit, mobile armor e nave de guerra. Avaria moderada ou severa zera o sistema daquele local.
 - Modo de combate com escala do oponente, invocação +2, rerrolagem e ejeção (conceder).
+- Dois modos: **Editar**, para montar a ficha, e **Jogar**, uma ficha limpa só com as informações, onde só estresse e consequências mudam. Quem só observa o ator vê o modo Jogar.
 - Manual completo da adaptação dentro da própria ficha.
 
 ## Imagens

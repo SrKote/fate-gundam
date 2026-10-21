@@ -277,6 +277,60 @@
 .fate-gundam-sheet .filebar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:20px;padding-top:14px;border-top:1px solid var(--line)}
 .fate-gundam-sheet .filebar small{color:var(--ink-2);flex:1 1 260px;font-size:12.5px}
 
+/* modo Jogar: ficha limpa */
+.fate-gundam-sheet[data-mode="play"] .edit-only{display:none!important}
+.fate-gundam-sheet .view{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+@container fg (max-width:900px){.fate-gundam-sheet .view{grid-template-columns:minmax(0,1fr)}.fate-gundam-sheet .view[data-show="pilot"] [data-id="vw-ms"],.fate-gundam-sheet .view[data-show="ms"] [data-id="vw-pilot"]{display:none}}
+.fate-gundam-sheet .vcard{background:var(--armor);border:1px solid var(--line);border-top:3px solid var(--fac);padding:18px 20px 20px;display:grid;gap:20px;animation:fg-dock .5s cubic-bezier(.2,.8,.2,1) both;min-width:0}
+.fate-gundam-sheet .vh{display:grid;grid-template-columns:104px minmax(0,1fr);gap:16px;align-items:end}
+.fate-gundam-sheet .vh img{width:104px;aspect-ratio:3/4;object-fit:cover;background:var(--plate);display:block;border:0}
+.fate-gundam-sheet .vh img.dflt,.fate-gundam-sheet .vhero img.dflt{object-fit:contain;mix-blend-mode:var(--img-blend);filter:var(--img-filter)}
+.fate-gundam-sheet .vk{font:600 11px var(--f-head);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
+.fate-gundam-sheet .fg .vh h2,.fate-gundam-sheet .fg .vhero h2{margin:2px 0 6px;font:800 34px/1 var(--f-display);letter-spacing:.01em;color:var(--ink)}
+.fate-gundam-sheet .vh p{margin:0;color:var(--ink-2);font-size:13.5px;max-width:52ch}
+.fate-gundam-sheet .vmeta{display:flex;flex-wrap:wrap;gap:6px 20px;margin-top:12px;align-items:center}
+.fate-gundam-sheet .vmeta span{display:inline-flex;align-items:center;gap:8px}
+.fate-gundam-sheet .vmeta b{font:800 24px/1 var(--f-display)}
+.fate-gundam-sheet .vhero{display:grid;gap:10px}
+.fate-gundam-sheet .vhero img{width:100%;aspect-ratio:16/9;object-fit:cover;background:var(--plate);display:block;border:0}
+.fate-gundam-sheet .fg .vsec h3{margin:0 0 10px;font:700 11px var(--f-head);letter-spacing:.16em;text-transform:uppercase;color:var(--fac-ink);border-bottom:1px solid var(--line);padding-bottom:6px;display:flex;justify-content:space-between;gap:8px}
+.fate-gundam-sheet .vsec h3 small{font:inherit;color:var(--ink-2);letter-spacing:.08em}
+.fate-gundam-sheet .vasp{display:grid;grid-template-columns:84px minmax(0,1fr);gap:8px 14px;margin:0}
+.fate-gundam-sheet .vasp dt{font:600 11px/1.6 var(--f-head);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
+.fate-gundam-sheet .vasp dd{margin:0;font-size:14.5px;line-height:1.45}
+.fate-gundam-sheet .vasp dd.nt{position:relative;padding-left:16px}
+.fate-gundam-sheet .vasp dd.nt::before{content:"";position:absolute;left:0;top:.45em;width:8px;height:8px;transform:rotate(45deg);background:var(--nt)}
+.fate-gundam-sheet .vasp dd.none{color:var(--ink-2)}
+@container fg (max-width:500px){.fate-gundam-sheet .vasp{grid-template-columns:minmax(0,1fr)}}
+.fate-gundam-sheet .vsk{display:grid;gap:7px}
+.fate-gundam-sheet .vsk-r{display:grid;grid-template-columns:72px minmax(0,1fr);gap:10px;align-items:center}
+.fate-gundam-sheet .vsk-r .vk{display:flex;align-items:baseline;gap:6px}
+.fate-gundam-sheet .vsk-r .vk b{font:800 22px/1 var(--f-display);color:var(--ink);letter-spacing:0}
+.fate-gundam-sheet .vchips{display:flex;flex-wrap:wrap;gap:6px}
+.fate-gundam-sheet .fg .vchip{border:0;border-left:3px solid var(--fac);background:var(--plate);color:var(--ink);padding:5px 10px;font:600 13.5px var(--f-body);cursor:pointer;transition:background .2s}
+.fate-gundam-sheet .fg .vchip:hover{background:color-mix(in srgb,var(--fac) 14%,var(--plate))}
+.fate-gundam-sheet .vlist{display:grid;gap:12px}
+.fate-gundam-sheet .vlist .it b{font:700 15px/1.25 var(--f-head);letter-spacing:.03em}
+.fate-gundam-sheet .vlist .it p{margin:3px 0 0;font-size:13.5px;line-height:1.45}
+.fate-gundam-sheet .vlist .it .tag{margin-left:6px;vertical-align:2px}
+.fate-gundam-sheet .vlist .it.locked{opacity:.55}
+.fate-gundam-sheet .vsys{display:grid;gap:7px}
+.fate-gundam-sheet .vsys-r{display:grid;grid-template-columns:96px minmax(0,1fr) 34px;gap:10px;align-items:center;font-size:13.5px}
+.fate-gundam-sheet .vsys-r span{font:600 12px var(--f-head);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.fate-gundam-sheet .vbar{display:flex;gap:3px}
+.fate-gundam-sheet .vbar i{flex:1;height:8px;background:var(--plate);border:1px solid var(--line)}
+.fate-gundam-sheet .vbar i.on{background:var(--fac-ink);border-color:var(--fac-ink)}
+.fate-gundam-sheet .vsys-r b{font:800 20px/1 var(--f-display);text-align:right}
+.fate-gundam-sheet .vsys-r.down b{color:var(--red-ink);text-decoration:line-through}
+.fate-gundam-sheet .vsys-r small{grid-column:2/-1;color:var(--red-ink);font-size:12px;margin-top:-4px}
+.fate-gundam-sheet .vperk{font-size:13.5px;margin:0}
+.fate-gundam-sheet .vwpn{display:grid;gap:10px}
+.fate-gundam-sheet .vwpn .it{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px}
+.fate-gundam-sheet .vwpn .it b{font:700 15px/1.25 var(--f-head)}
+.fate-gundam-sheet .vwpn .it .w{font:800 20px/1 var(--f-display);color:var(--red-ink);text-align:right}
+.fate-gundam-sheet .vwpn .it small{grid-column:1/-1;color:var(--ink-2);font-size:12.5px}
+.fate-gundam-sheet .vnone{color:var(--ink-2);font-size:13px;font-style:italic;margin:0}
+
 /* encaixes de façanha */
 .fate-gundam-sheet .fg .toggle{display:inline-flex;align-items:center;gap:8px;font:600 11.5px/1.2 var(--f-head);letter-spacing:.08em;text-transform:uppercase;background:transparent;border:1px solid var(--line);color:var(--ink);padding:5px 9px;cursor:pointer}
 .fate-gundam-sheet .fg .toggle::before{content:"";width:12px;height:12px;border:1.5px solid var(--ink-2);transition:background .2s}

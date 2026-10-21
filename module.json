@@ -2,7 +2,7 @@
   "id": "fate-gundam",
   "title": "Fate Gundam",
   "description": "Ficha de piloto e mobile suit para jogar Gundam com Fate Core: duas fichas ligadas por uma escotilha de cabine, modo de combate com as somas prontas, avarias marcadas no corpo da máquina, rolagens de 4dF no chat e o manual da adaptação. Funciona com qualquer sistema: escolha a ficha em Configurar ficha.",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "authors": [
     {
       "name": "SrKote",
@@ -22,7 +22,7 @@
   "languages": [],
   "url": "https://github.com/SrKote/fate-gundam",
   "manifest": "https://github.com/SrKote/fate-gundam/releases/latest/download/module.json",
-  "download": "https://github.com/SrKote/fate-gundam/releases/download/v1.2.0/module.zip",
+  "download": "https://github.com/SrKote/fate-gundam/releases/download/v1.3.0/module.zip",
   "readme": "https://github.com/SrKote/fate-gundam#readme",
   "bugs": "https://github.com/SrKote/fate-gundam/issues"
 }

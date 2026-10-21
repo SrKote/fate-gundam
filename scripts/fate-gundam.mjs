@@ -71,7 +71,7 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;
 
 function blank() {
   const dm = () => ({t:"",loc:""});
-  return {v:2,faction:"fed",cockpit:false,show:"pilot",opp:2,
+  return {v:2,faction:"fed",cockpit:false,show:"pilot",opp:2,mode:"edit",
     pilot:{name:"",desc:"",fp:3,trade:false,aspects:[0,1,2,3,4].map(() => ({t:"",nt:false})),
       skills:{"4":[""],"3":["",""],"2":["","",""],"1":["","","",""]},stunts:[],
       stress:{f:[0,0,0,0],m:[0,0,0,0]},cons:{s:"",m:"",sv:"",x:""}},
@@ -79,7 +79,7 @@ function blank() {
       stress:[0,0,0,0],dmg:{l:dm(),m:dm(),s:dm(),sh:dm()}}};
 }
 function example() {
-  const s = blank(); s.faction = "zeon";
+  const s = blank(); s.faction = "zeon"; s.mode = "play";
   const p = s.pilot;
   p.name = "Lalah Sune";
   p.desc = "Jovem garota de origem indiana com poderes newtype incrivelmente potentes.";
@@ -121,6 +121,7 @@ function normalize(o) {
   if (!CLASSES[s.ms.cls]) s.ms.cls = "massa";
   if (s.faction !== "zeon") s.faction = "fed";
   if (![0,1,2,3].includes(s.opp)) s.opp = 2;
+  if (s.mode !== "play") s.mode = "edit";
   Object.keys(s.ms.sys).forEach(k => s.ms.sys[k] = Math.max(0, Math.min(sysMax(k, s.ms.cls), +s.ms.sys[k] || 0)));
   s.ms.weapons.forEach(w => w.w = Math.max(0, Math.min(2, +w.w || 0)));
   s.v = 2;
@@ -136,7 +137,11 @@ function template() {
       <p class="sub">Piloto e mobile suit para Fate Core <span class="kana">パイロット・モビルスーツ</span></p>
     </div>
     <div class="tools">
-      <div class="seg" role="group" aria-label="Facção">
+      <div class="seg" role="group" aria-label="Modo da ficha" data-id="modeseg">
+        <button type="button" data-mode="play" aria-pressed="false">Jogar</button>
+        <button type="button" data-mode="edit" aria-pressed="true">Editar</button>
+      </div>
+      <div class="seg edit-only" role="group" aria-label="Facção">
         <button type="button" data-fac="fed" aria-pressed="true">Federação</button>
         <button type="button" data-fac="zeon" aria-pressed="false">Zeon</button>
       </div>
@@ -174,6 +179,11 @@ function template() {
         </div></article>
       </div>
       <div class="col" data-id="cb-right"></div>
+    </div>
+
+    <div class="view" data-id="view" data-show="pilot" hidden>
+      <div class="col" data-id="vw-pilot"><article class="vcard" data-id="vc-pilot"></article></div>
+      <div class="col" data-id="vw-ms"><article class="vcard" data-id="vc-ms"></article></div>
     </div>
 
     <div class="cols" data-id="cols" data-show="pilot">
@@ -309,7 +319,7 @@ function template() {
       </div>
     </div>
 
-    <div class="filebar">
+    <div class="filebar edit-only">
       <small>A ficha fica guardada no próprio ator. Para levar a outro mundo, use Exportar dados no menu do ator.</small>
       <button type="button" class="btn sm ghost" data-act="example">Exemplo: Lalah Sune</button>
       <button type="button" class="btn sm ghost" data-act="new">Nova ficha</button>
@@ -807,7 +817,7 @@ class SheetUI {
     const ns = st.ms.stunts.length, lim = this.$("#ms-limit");
     lim.textContent = ns > c.st ? `${ns} de ${c.st} façanhas: acima do limite da classe` : `${ns} de ${c.st} façanhas da classe`;
     lim.classList.toggle("over", ns > c.st);
-    this.renderDamage(); this.renderLink(); this.renderLocks(); this.renderCombat();
+    this.renderDamage(); this.renderLink(); this.renderLocks(); this.renderCombat(); this.renderView();
   }
   renderLink() {
     this.$("#lk-pilot").textContent = this.state.pilot.name || "Sem nome";
@@ -867,16 +877,56 @@ class SheetUI {
     if (d < 0 && (a.kind === "Atacar" || a.kind === "Defender")) notes.push(`O oponente é maior: ele soma +${-d} contra você.`);
     this.roll(a.n, parts, notes.join(" "), !!a.warn);
   }
+  /* modo Jogar: ficha limpa */
+  mode() { return this.app.isEditable ? this.state.mode : "play"; }
+  renderView() {
+    if (this.mode() !== "play") return;
+    const st = this.state, p = st.pilot, m = st.ms, c = this.cls(), nt = this.hasNT(), ref = this.refresh();
+    const vimg = (src, dflt, alt) => `<img src="${esc(src || dflt)}" alt="${esc(alt)}"${src ? "" : ' class="dflt"'}>`;
+    const asp = p.aspects.map((a, i) => `<dt>${P_ASP[i]}</dt><dd class="${a.nt ? "nt" : ""}${a.t.trim() ? "" : " none"}">${a.t.trim() ? esc(a.t) : "—"}</dd>`).join("");
+    const sk = TIERS.map(t => { const list = p.skills[t.v].filter(Boolean); if (!list.length) return ""; return `<div class="vsk-r"><span class="vk">${t.n}<b>${sgn(t.v)}</b></span><div class="vchips">${list.map(n => `<button type="button" class="vchip" data-roll="${esc(n)}" aria-label="Rolar ${esc(n)}">${esc(n)}</button>`).join("")}</div></div>`; }).join("");
+    const pst = p.stunts.length ? p.stunts.map(x => { const lock = (x.nt && !nt) || (x.psy && !this.msHas("psy")); return `<div class="it${lock ? " locked" : ""}"><b>${esc(x.n || "Sem nome")}</b>${x.nt ? '<span class="tag nt">Newtype</span>' : ""}${lock ? '<span class="tag lock">Travada</span>' : ""}<p>${esc(x.d || "")}</p></div>`; }).join("") : '<p class="vnone">Sem façanhas.</p>';
+    this.$("#vc-pilot").innerHTML = `
+      <header class="vh">${vimg(this.actorImg(), IMG.pilot, "Retrato do piloto")}<div><span class="vk">Piloto${nt ? " · Newtype" : ""}</span><h2>${esc(p.name || "Sem nome")}</h2>${p.desc ? `<p>${esc(p.desc)}</p>` : ""}
+        <div class="vmeta"><span><span class="vk">Recarga</span><b>${ref}</b></span><span><span class="vk">Pontos de destino</span><b>${p.fp}</b><span class="pips">${Array.from({length:Math.max(ref, p.fp)}, (_, i) => `<i class="pip${i < p.fp ? " on" : ""}"></i>`).join("")}</span></span></div></div></header>
+      <section class="vsec"><h3>Aspectos</h3><dl class="vasp">${asp}</dl></section>
+      <section class="vsec"><h3>Perícias <small>clique para rolar</small></h3><div class="vsk">${sk || '<p class="vnone">Sem perícias na pirâmide.</p>'}</div></section>
+      <section class="vsec"><h3>Façanhas</h3><div class="vlist">${pst}</div></section>`;
+    const sys = SYS.map(x => { const v = m.sys[x.k], d = this.downBy(x.k); return `<div class="vsys-r${d && v ? " down" : ""}"><span>${x.n}</span><div class="vbar">${Array.from({length:MAX}, (_, i) => `<i class="${i < v ? "on" : ""}"></i>`).join("")}</div><b>${sgn(v)}</b>${d && v ? `<small>Zerado pela avaria em ${esc(d)}</small>` : ""}</div>`; }).join("");
+    const mst = m.stunts.length ? m.stunts.map(x => `<div class="it"><b>${esc(x.n || "Sem nome")}</b><p>${esc(x.d || "")}</p></div>`).join("") : '<p class="vnone">Sem façanhas de sistema.</p>';
+    const rng = r => (RANGES.find(x => x[0] === String(r)) || RANGES[0])[1].toLowerCase();
+    const wpn = m.weapons.length ? m.weapons.map(w => `<div class="it"><b>${esc(w.n || "Arma sem nome")}</b><span class="w">Arma:${+w.w || 0}</span><small>${esc(w.sk)} · ${rng(w.r)}${w.note ? " · " + esc(w.note) : ""}</small></div>`).join("") : '<p class="vnone">Sem armas.</p>';
+    this.$("#vc-ms").innerHTML = `
+      <header class="vhero">${vimg(m.img, this.body().img, "Imagem da máquina")}<div><span class="vk">${this.body().kind} · ${c.n} · escala ${c.scale}</span><h2>${esc(m.name || "Sem designação")}</h2></div></header>
+      <section class="vsec"><h3>Aspectos da máquina</h3><dl class="vasp">${M_ASP.map((l, i) => `<dt>${l}</dt><dd class="${m.aspects[i].trim() ? "" : "none"}">${m.aspects[i].trim() ? esc(m.aspects[i]) : "—"}</dd>`).join("")}</dl></section>
+      <section class="vsec"><h3>Sistemas</h3><div class="vsys">${sys}</div></section>
+      <section class="vsec"><h3>${c.n}</h3><p class="vperk">${c.perk}</p></section>
+      <section class="vsec"><h3>Façanhas de sistema</h3><div class="vlist">${mst}</div></section>
+      <section class="vsec"><h3>Armamento <small>rola no modo de combate</small></h3><div class="vwpn">${wpn}</div></section>`;
+  }
+  renderMode() {
+    const mode = this.mode();
+    this.app.element.dataset.mode = mode;
+    this.$("#modeseg").hidden = !this.app.isEditable;
+    this.$$("#modeseg button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
+    this.renderView();
+  }
+  placePanels() {
+    const on = !!this.state.cockpit, play = this.mode() === "play";
+    ["pn-mdmg", "pn-pstress"].forEach(id => { const el = this.$("#" + id);
+      if (!this.homes[id]) this.homes[id] = el.parentNode;
+      if (on) (id === "pn-mdmg" ? this.$("#cb-left") : this.$("#cb-right")).appendChild(el);
+      else if (play) (id === "pn-mdmg" ? this.$("#vw-ms") : this.$("#vw-pilot")).appendChild(el);
+      else this.homes[id].appendChild(el); });
+  }
   renderCockpit(animate) {
     const on = !!this.state.cockpit;
     this.$("#cockpit").setAttribute("aria-pressed", String(on));
     this.$("#hatch-lbl").textContent = on ? "Sair da cabine" : "Entrar na cabine";
-    this.$("#link-note").innerHTML = on ? "Modo de combate: cada ação já soma <b>perícia + sistema</b>. Clique para rolar no chat." : "Fora da cabine, a ficha é para montar e editar. Feche a escotilha para lutar.";
-    this.$("#combat").hidden = !on; this.$("#cols").hidden = on; this.$("#mswitch").hidden = on;
-    ["pn-mdmg", "pn-pstress"].forEach(id => { const el = this.$("#" + id);
-      if (!this.homes[id]) this.homes[id] = el.parentNode;
-      if (on) (id === "pn-mdmg" ? this.$("#cb-left") : this.$("#cb-right")).appendChild(el);
-      else this.homes[id].appendChild(el); });
+    const play = this.mode() === "play";
+    this.$("#link-note").innerHTML = on ? "Modo de combate: cada ação já soma <b>perícia + sistema</b>. Clique para rolar no chat." : (play ? "Ficha de jogo: só estresse e consequências mudam aqui. Feche a escotilha para lutar." : "Modo de edição: monte e ajuste a ficha. Use Jogar para a ficha limpa.");
+    this.$("#combat").hidden = !on; this.$("#cols").hidden = on || play; this.$("#view").hidden = on || !play; this.$("#mswitch").hidden = on;
+    this.placePanels();
     if (on) this.renderCombat();
     if (animate && on && !this.RM) { const sc = this.$("#scan"); sc.style.setProperty("--h", this.$("#combat").offsetHeight + "px"); sc.classList.remove("go"); void sc.offsetWidth; sc.classList.add("go"); }
   }
@@ -885,7 +935,7 @@ class SheetUI {
     this.$$("[data-fac]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.fac === this.state.faction)));
   }
   renderShow() {
-    this.$("#cols").dataset.show = this.state.show;
+    this.$("#cols").dataset.show = this.state.show; this.$("#view").dataset.show = this.state.show;
     this.$$("[data-show]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.show === this.state.show)));
   }
   setView(v) {
@@ -897,7 +947,7 @@ class SheetUI {
     this.renderFaction(); this.renderShow();
     this.renderPyramid(); this.renderStunts("pilot"); this.renderStunts("ms"); this.renderWeapons(); this.renderSys();
     this.bindValues(this.root); this.$("#ms-cls").value = this.state.ms.cls;
-    this.renderNT(); this.renderImages(); this.renderCockpit(false); this.renderDerived();
+    this.renderNT(); this.renderImages(); this.renderMode(); this.renderCockpit(false); this.renderDerived();
     this.setView(this.view || "ficha");
   }
 
@@ -1007,6 +1057,7 @@ class SheetUI {
       if (d.view) return this.setView(d.view);
       if (d.goto) { const sec = this.$(`[data-sec="${d.goto}"]`); if (sec) sec.scrollIntoView({behavior: this.RM ? "auto" : "smooth", block: "start"}); return; }
       if (d.show) { s.show = d.show; this.renderShow(); return; }
+      if (d.mode && t.closest("[data-id='modeseg']")) { if (!edit) return; s.mode = d.mode; this.renderMode(); this.renderCockpit(false); this.root.closest(".window-content")?.scrollTo({top:0}); this.save(); return; }
       if (t.dataset.id === "cockpit") { s.cockpit = !s.cockpit; this.renderCockpit(true); if (edit) this.save(); return; }
       if (d.opp != null) { s.opp = +d.opp; this.renderCombat(); if (edit) this.save(); return; }
       if (d.tile != null) return this.rollAction(+d.tile);
