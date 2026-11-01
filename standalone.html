@@ -1,0 +1,1920 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fate Gundam</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700&family=Saira+Extra+Condensed:wght@700;800&family=Saira:wght@400;500;600&family=Zen+Kaku+Gothic+New:wght@700&display=swap" rel="stylesheet">
+<style>
+/* Layout: duas fichas lado a lado (piloto | máquina) ligadas por uma escotilha; fechar a escotilha troca as colunas por um painel único de combate. Placas de blindagem chanfradas; manual de montagem como segunda vista. */
+:root{
+  --hangar:#D5D8D7; --armor:#F2F1EC; --plate:#E4E5E0; --ink:#1C2331; --ink-2:#536073; --line:#B3B8B7;
+  --fac:#2448A2; --fac-ink:#1E3D8C; --on-fac:#F5F4EF;
+  --red:#BF3A2D; --red-ink:#A3302A; --on-red:#FFF7F2;
+  --nt:#DDA22A; --nt-ink:#7E5604; --on-nt:#2A1D00;
+  --sev2:#7B818B; --img-blend:multiply; --img-filter:none;
+  --shadow:0 12px 32px rgba(20,28,40,.18);
+  --f-display:"Saira Extra Condensed","Saira Condensed","Arial Narrow",sans-serif;
+  --f-head:"Saira Condensed","Arial Narrow",sans-serif;
+  --f-body:"Saira",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-kana:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic","Meiryo",sans-serif;
+}
+:root[data-faction="zeon"]{ --fac:#3F5D3A; --fac-ink:#36522F; --red:#9C2C26; --red-ink:#8E2621; }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --hangar:#0F131A; --armor:#1A202A; --plate:#232A36; --ink:#E7E5DD; --ink-2:#9AA3B1; --line:#343C4A;
+    --fac:#2E55B8; --fac-ink:#93ACEC; --on-fac:#F3F2EC;
+    --red:#C9443A; --red-ink:#F08C80; --on-red:#FFF7F2;
+    --nt:#E2AE3E; --nt-ink:#F0C66A; --on-nt:#2A1D00;
+    --sev2:#8C939E; --img-blend:normal; --img-filter:brightness(.92);
+    --shadow:0 12px 32px rgba(0,0,0,.45);
+    color-scheme:dark;
+  }
+  :root:not([data-theme="light"])[data-faction="zeon"]{ --fac:#4A6B44; --fac-ink:#A3C798; --red:#B8372F; --red-ink:#EE8C83; }
+}
+:root[data-theme="dark"]{
+  --hangar:#0F131A; --armor:#1A202A; --plate:#232A36; --ink:#E7E5DD; --ink-2:#9AA3B1; --line:#343C4A;
+  --fac:#2E55B8; --fac-ink:#93ACEC; --on-fac:#F3F2EC;
+  --red:#C9443A; --red-ink:#F08C80; --on-red:#FFF7F2;
+  --nt:#E2AE3E; --nt-ink:#F0C66A; --on-nt:#2A1D00;
+  --sev2:#8C939E; --img-blend:normal; --img-filter:brightness(.92);
+  --shadow:0 12px 32px rgba(0,0,0,.45);
+  color-scheme:dark;
+}
+:root[data-theme="dark"][data-faction="zeon"]{ --fac:#4A6B44; --fac-ink:#A3C798; --red:#B8372F; --red-ink:#EE8C83; }
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--hangar);color:var(--ink);font:400 14.5px/1.5 var(--f-body);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1320px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:22px 140px}
+button{font-family:inherit}
+:focus-visible{outline:2px solid var(--fac-ink);outline-offset:2px}
+.kana{font-family:var(--f-kana);font-weight:700;letter-spacing:.06em;text-transform:none}
+
+/* ---------- cabeçalho: catapulta ---------- */
+.deck{position:relative;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px 24px;padding-bottom:16px}
+.brand{min-width:0}
+.title{margin:0;font:800 clamp(46px,8.4vw,88px)/.84 var(--f-display);letter-spacing:.005em;display:inline-block;transform:skewX(-10deg);transform-origin:left bottom;animation:launch .95s cubic-bezier(.16,.9,.24,1) both .15s}
+.title .g{color:var(--fac-ink)}
+.sub{margin:8px 0 0;font:600 12.5px/1.4 var(--f-head);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+.sub .kana{margin-left:8px;letter-spacing:.04em}
+.rail{position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--line);overflow:hidden}
+.rail::before{content:"";position:absolute;inset:0;background:var(--fac);transform-origin:left;animation:rail .7s cubic-bezier(.5,0,.2,1) both}
+.rail::after{content:"";position:absolute;top:-2px;bottom:-2px;left:0;width:34px;background:var(--red);animation:shuttle 1.1s cubic-bezier(.55,0,.15,1) both .1s}
+@keyframes launch{0%{transform:translateX(-38vw) skewX(-10deg);opacity:.15}72%{transform:translateX(1.2%) skewX(-10deg);opacity:1}100%{transform:translateX(0) skewX(-10deg)}}
+@keyframes rail{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes shuttle{0%{transform:translateX(0)}85%{transform:translateX(calc(100vw - 40px));opacity:1}100%{transform:translateX(calc(100vw - 40px));opacity:0}}
+.tools{display:flex;flex-wrap:wrap;gap:8px}
+
+.seg{display:inline-flex;border:1px solid var(--line);background:var(--armor);padding:2px;gap:2px}
+.seg button{font:600 13px var(--f-head);letter-spacing:.08em;text-transform:uppercase;border:0;background:transparent;color:var(--ink-2);padding:7px 13px;cursor:pointer;transition:background .2s,color .2s}
+.seg button:hover{color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--fac);color:var(--on-fac)}
+
+.btn{font:600 12.5px var(--f-head);letter-spacing:.08em;text-transform:uppercase;background:var(--ink);color:var(--armor);border:0;padding:8px 13px;cursor:pointer;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));transition:transform .15s}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{background:var(--plate);color:var(--ink)}
+.btn.fac{background:var(--fac);color:var(--on-fac)}
+.btn.sm{padding:5px 9px;font-size:11px}
+.btn.warn{background:var(--red);color:var(--on-red)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* ---------- escotilha da cabine ---------- */
+.link{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px;margin:22px 0 4px}
+.link-side{min-width:0}
+.link-side small{display:block;font:600 11px var(--f-head);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
+.link-side b{display:block;font:700 21px/1.15 var(--f-head);letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.link-side.r{text-align:right}
+.hatch{position:relative;width:min(260px,42vw);height:52px;border:1px solid var(--line);background:var(--plate);overflow:hidden;cursor:pointer;color:var(--ink);font:700 13px var(--f-head);letter-spacing:.14em;text-transform:uppercase}
+.shutter{position:absolute;top:0;bottom:0;width:50%;background:var(--fac);transition:transform .45s cubic-bezier(.75,0,.2,1)}
+.shutter.l{left:0;transform:translateX(-101%);border-right:2px solid var(--nt)}
+.shutter.r{right:0;transform:translateX(101%);border-left:2px solid var(--nt)}
+.hatch[aria-pressed="true"] .shutter{transform:none}
+.hatch .lbl{position:relative;z-index:1;transition:color .3s .15s}
+.hatch[aria-pressed="true"] .lbl{color:var(--on-fac)}
+.link-note{text-align:center;color:var(--ink-2);font-size:13px;margin:6px 0 16px;min-height:1.5em}
+.link-note b{color:var(--fac-ink);font-weight:600}
+@media (max-width:640px){.link{grid-template-columns:1fr 1fr}.hatch{grid-column:1/-1;grid-row:2;width:100%}}
+
+/* ---------- colunas e painéis ---------- */
+.mswitch{display:none}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+.col{display:grid;gap:16px;position:relative;min-width:0;align-content:start}
+@media (max-width:980px){
+  .mswitch{display:flex;width:100%;margin-bottom:14px}
+  .mswitch button{flex:1}
+  .cols{grid-template-columns:minmax(0,1fr)}
+  .cols[data-show="pilot"] #col-ms,.cols[data-show="ms"] #col-pilot{display:none}
+}
+.panel{--cut:14px;background:var(--line);padding:1px;clip-path:polygon(0 0,calc(100% - var(--cut)) 0,100% var(--cut),100% 100%,var(--cut) 100%,0 calc(100% - var(--cut)));animation:dock .55s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0) * 60ms + .35s);min-width:0}
+.panel>.in{background:var(--armor);padding:0 16px 16px;clip-path:polygon(0 0,calc(100% - var(--cut) + 1px) 0,100% calc(var(--cut) - 1px),100% 100%,calc(var(--cut) - 1px) 100%,0 calc(100% - var(--cut) + 1px));min-width:0}
+@keyframes dock{from{transform:translateY(12px);opacity:.35}to{transform:none;opacity:1}}
+.hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 -16px 14px;padding:7px 16px 6px;background:var(--fac);color:var(--on-fac)}
+.hd h2{margin:0;font:700 16px/1.2 var(--f-head);letter-spacing:.1em;text-transform:uppercase}
+.hd .kana{font-size:11px;opacity:.82;margin-right:12px}
+.hd.red{background:var(--red);color:var(--on-red)}
+.hint{color:var(--ink-2);font-size:12.5px;margin:10px 0 0}
+.empty{color:var(--ink-2);font-size:13px;margin:4px 0;font-style:italic}
+
+.fld{display:grid;gap:3px;min-width:0}
+.fld>span,.lbl{font:600 11px var(--f-head);letter-spacing:.13em;text-transform:uppercase;color:var(--ink-2)}
+input,textarea,select{font:500 14.5px/1.35 var(--f-body);color:var(--ink);background:var(--plate);border:0;border-bottom:1px solid var(--line);border-radius:0;padding:7px 9px;width:100%;min-width:0}
+textarea{resize:vertical}
+input::placeholder,textarea::placeholder{color:var(--ink-2);opacity:.7}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--fac-ink);outline-offset:-2px}
+input:disabled{opacity:.45}
+
+/* identidade */
+.ident{display:grid;grid-template-columns:160px minmax(0,1fr);gap:14px}
+@media (max-width:540px){.ident{grid-template-columns:minmax(0,1fr)}.ident .portrait{max-width:220px}}
+.ident-f{display:grid;gap:10px;align-content:start;min-width:0}
+.slot-img{margin:0;position:relative;background:var(--plate);aspect-ratio:3/4;overflow:hidden;max-width:100%}
+.slot-img.hero{aspect-ratio:4/3;margin:0 0 12px}
+.slot-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.slot-img img.dflt{object-fit:contain;padding:8px;mix-blend-mode:var(--img-blend);filter:var(--img-filter)}
+.slot-img.hero img.dflt{padding:10px 0 4px}
+.img-act{position:absolute;right:6px;bottom:6px;display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;max-width:calc(100% - 12px)}
+.img-act label{position:relative}
+.img-act input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+.decal{position:absolute;top:6px;left:6px;font:600 9.5px/1.2 var(--f-head);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);border:1px solid currentColor;padding:2px 5px;background:var(--armor);max-width:calc(100% - 12px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.decal.nt{top:auto;bottom:6px;left:6px;color:var(--nt-ink)}
+.meters{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px}
+.meter{background:var(--plate);padding:8px 10px;display:grid;gap:3px;align-content:start}
+.meter b{font:800 32px/1 var(--f-display)}
+.meter small{color:var(--ink-2);font-size:12px;line-height:1.3}
+.fp-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pips{display:flex;gap:6px;flex-wrap:wrap;padding:0 2px}
+.pip{width:13px;height:13px;transform:rotate(45deg);border:1.5px solid var(--fac-ink);transition:background .2s}
+.pip.on{background:var(--fac-ink)}
+.step{width:30px;height:30px;border:1px solid var(--line);background:var(--armor);color:var(--ink);font:700 17px/1 var(--f-head);cursor:pointer;display:grid;place-items:center;padding:0}
+.step:disabled{opacity:.35;cursor:not-allowed}
+.fp-n{font:800 24px/1 var(--f-display);min-width:20px;text-align:center}
+.ms-meta{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;gap:10px;align-items:end}
+@media (max-width:540px){.ms-meta{grid-template-columns:minmax(0,1fr) auto}.ms-meta .fld:first-child{grid-column:1/-1}}
+.scale{background:var(--plate);padding:6px 10px;text-align:center}
+.scale b{display:block;font:800 28px/1 var(--f-display)}
+.perk{margin:10px 0 0;padding:8px 10px;background:var(--plate);border-left:3px solid var(--fac);font-size:13px}
+.perk b{font:700 11px var(--f-head);letter-spacing:.12em;text-transform:uppercase;color:var(--fac-ink);display:block}
+
+/* aspectos */
+.asp{display:grid;grid-template-columns:86px minmax(0,1fr) auto;align-items:center;gap:8px;padding:3px 4px;margin:0 -4px}
+.asp-l{font:600 11.5px var(--f-head);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);text-align:right}
+.nt-tog{font:700 11px var(--f-head);letter-spacing:.08em;width:40px;height:32px;border:1.5px solid var(--line);background:transparent;color:var(--ink-2);cursor:pointer;transition:background .2s,border-color .2s,color .2s}
+.nt-tog[aria-pressed="true"]{background:var(--nt);border-color:var(--nt);color:var(--on-nt)}
+.asp.flash{animation:ntflash .9s ease-out}
+@keyframes ntflash{0%{background:color-mix(in srgb,var(--nt) 60%,transparent);box-shadow:inset 3px 0 0 var(--nt)}100%{background:transparent;box-shadow:inset 3px 0 0 transparent}}
+@media (max-width:540px){.asp{grid-template-columns:minmax(0,1fr) auto}.asp-l{grid-column:1/-1;text-align:left}}
+
+/* pirâmide */
+.pyr{display:grid;gap:8px}
+.tier{display:grid;grid-template-columns:72px minmax(0,1fr);align-items:center;gap:8px}
+.tier-l{text-align:right;font:600 11px/1.1 var(--f-head);text-transform:uppercase;letter-spacing:.08em;color:var(--ink-2)}
+.tier-l b{display:block;font:800 20px/1 var(--f-display);color:var(--ink);letter-spacing:0}
+.tier-slots{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;min-width:0}
+.sk{display:flex;flex:0 1 150px;min-width:108px;background:var(--plate);border-bottom:2px solid var(--line);position:relative;transition:border-color .2s}
+.sk.filled{border-bottom-color:var(--fac)}
+.sk select{appearance:none;-webkit-appearance:none;background:transparent;border:0;padding:8px 8px;font:600 13.5px var(--f-body);flex:1;cursor:pointer;text-overflow:ellipsis}
+.die{flex:none;width:32px;border:0;border-left:1px solid var(--line);background:transparent;cursor:pointer;display:grid;place-items:center;color:var(--ink);padding:0}
+.die svg{width:18px;height:18px;transition:transform .25s}
+.die:hover:not(:disabled) svg{transform:rotate(90deg)}
+.die:disabled{opacity:.25;cursor:default}
+.row-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-top:12px}
+
+/* façanhas */
+.stunt{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 8px;padding:10px 0;border-top:1px solid var(--line)}
+.stunt:first-child{border-top:0;padding-top:0}
+.stunt input{font-weight:600}
+.stunt textarea{grid-column:1/-1;font-size:13.5px}
+.tags{display:flex;gap:6px;align-items:center}
+.tag{font:700 10px/1.6 var(--f-head);letter-spacing:.1em;padding:0 6px;text-transform:uppercase;white-space:nowrap}
+.tag.nt{background:var(--nt);color:var(--on-nt)}
+.tag.lock{border:1px solid var(--red-ink);color:var(--red-ink)}
+.stunt.locked input,.stunt.locked textarea{opacity:.5}
+.x{width:30px;height:30px;border:1px solid var(--line);background:transparent;color:var(--ink-2);cursor:pointer;font-size:16px;line-height:1;padding:0}
+.x:hover{color:var(--red-ink);border-color:var(--red-ink)}
+.adder{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.adder select{flex:1 1 220px;width:auto}
+.limit{font:600 11.5px var(--f-head);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin:0 0 10px}
+.limit.over{color:var(--red-ink)}
+
+/* estresse e consequências */
+.dmg-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);gap:18px}
+@media (max-width:640px){.dmg-grid{grid-template-columns:minmax(0,1fr)}}
+.track-b{display:grid;gap:6px;margin-bottom:14px}
+.track-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.track-h small{color:var(--ink-2);font-size:12px}
+.track{display:flex;gap:6px;flex-wrap:wrap}
+.box{width:46px;height:46px;border:1.5px solid var(--ink-2);background:var(--plate);color:var(--ink);cursor:pointer;display:grid;place-items:center;padding:0;transition:border-color .2s}
+.box span{font:800 20px/1 var(--f-display);padding:1px 5px}
+.box[aria-pressed="true"]{border-color:var(--ink);background:repeating-linear-gradient(-45deg,var(--nt) 0 6px,var(--ink) 6px 12px);animation:stamp .28s cubic-bezier(.2,1.5,.4,1)}
+.box[aria-pressed="true"] span{background:var(--armor)}
+.box:disabled{border-style:dashed;opacity:.38;cursor:not-allowed}
+@keyframes stamp{from{transform:scale(1.25)}to{transform:none}}
+.cons{display:grid;gap:8px}
+.con{display:grid;grid-template-columns:30px 76px minmax(0,1fr);align-items:center;gap:4px 8px}
+.con .v{font:800 26px/1 var(--f-display);color:var(--red-ink);text-align:center}
+.con .n{font:600 11px/1.2 var(--f-head);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
+.con .n small{display:block;letter-spacing:.04em;text-transform:none;font-weight:500}
+.con.off{opacity:.42}
+@media (max-width:540px){.con{grid-template-columns:30px minmax(0,1fr)}.con input{grid-column:1/-1}}
+
+/* avarias na figura */
+.dmg-wrap{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:16px;align-items:start}
+@media (max-width:620px){.dmg-wrap{grid-template-columns:minmax(0,1fr)}}
+.dmg-wrap.wide{grid-template-columns:minmax(0,1fr)}
+.dmg-wrap.wide .dfig{max-width:520px}
+.dfig{position:relative;max-width:300px;width:100%;margin:0 auto;background:var(--plate)}
+.dfig img{display:block;width:100%;height:auto;mix-blend-mode:var(--img-blend);filter:var(--img-filter)}
+.zone{position:absolute;transform:translate(-50%,-50%);font:700 10.5px/1.25 var(--f-head);letter-spacing:.05em;text-transform:uppercase;padding:3px 7px;border:1.5px solid var(--ink);background:var(--armor);color:var(--ink);cursor:pointer;white-space:nowrap;text-align:center;transition:background .2s,color .2s,transform .2s}
+.zone small{display:block;font-size:9.5px;letter-spacing:.04em;text-transform:none}
+.zone:hover{transform:translate(-50%,-50%) scale(1.08)}
+.zone[data-sev="2"]{background:var(--sev2);border-color:var(--sev2);color:var(--on-red)}
+.zone[data-sev="4"],.zone[data-sev="6"]{background:var(--red);border-color:var(--red);color:var(--on-red);animation:hit .35s cubic-bezier(.2,1.6,.4,1)}
+@keyframes hit{from{transform:translate(-50%,-50%) scale(1.3)}to{transform:translate(-50%,-50%) scale(1)}}
+.dcon{display:grid;grid-template-columns:30px minmax(0,1fr);gap:2px 8px;padding:6px 6px 8px;border:1.5px solid transparent;cursor:pointer;transition:border-color .2s,background .2s}
+.dcon.active{border-color:var(--fac-ink);background:color-mix(in srgb,var(--fac) 7%,transparent)}
+.dcon .v{grid-row:1/span 2;font:800 26px/1 var(--f-display);color:var(--red-ink);text-align:center;padding-top:2px}
+.dcon .top{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.dcon .n{font:600 11px/1.2 var(--f-head);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
+.loc{font:700 10.5px/1.5 var(--f-head);letter-spacing:.06em;text-transform:uppercase;border:1px dashed var(--line);background:transparent;color:var(--ink-2);padding:0 6px;cursor:pointer}
+.loc.set{border-style:solid;border-color:var(--red);background:var(--red);color:var(--on-red)}
+.dcon input{grid-column:2}
+
+/* sistemas */
+.budget{display:flex;align-items:center;gap:12px;margin-bottom:6px;flex-wrap:wrap}
+.bar{display:flex;gap:3px;flex:1 1 160px}
+.bar i{flex:1;height:10px;background:var(--plate);border:1px solid var(--line);transition:background .25s}
+.bar i.on{background:var(--fac);border-color:var(--fac)}
+.budget.over .bar i.on{background:var(--red);border-color:var(--red)}
+.budget-t{font:600 12px var(--f-head);letter-spacing:.06em;color:var(--ink-2);width:100%}
+.budget.over .budget-t{color:var(--red-ink)}
+.sys{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 12px;padding:9px 0;border-top:1px solid var(--line)}
+.sys-n b{font:700 15px var(--f-head);letter-spacing:.06em;text-transform:uppercase}
+.sys-n small{display:block;color:var(--ink-2);font-size:12.5px;line-height:1.35}
+.sys-n .down{color:var(--red-ink);font-weight:600}
+.stepper{display:flex;align-items:center;gap:6px}
+.stepper output{font:800 24px/1 var(--f-display);width:34px;text-align:center}
+.stepper output.zero{color:var(--red-ink);text-decoration:line-through}
+.spips{display:flex;gap:3px;margin-top:4px}
+.spips i{width:18px;height:5px;background:var(--plate);border:1px solid var(--line)}
+.spips i.on{background:var(--fac-ink);border-color:var(--fac-ink)}
+
+/* armamento */
+.wpn{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) 64px minmax(0,1fr) 30px;grid-template-areas:"nm sk w r x" "note note note note note";gap:6px;align-items:end;padding:10px 0;border-top:1px solid var(--line)}
+.wpn:first-child{border-top:0;padding-top:0}
+.wpn .nm{grid-area:nm;font-weight:600}.wpn .sk-s{grid-area:sk}.wpn .w{grid-area:w}.wpn .r{grid-area:r}.wpn .x{grid-area:x;height:34px}.wpn .note{grid-area:note;font-size:13px}
+.wpn .w{display:grid;gap:2px}
+.wpn .w span{font:600 10px var(--f-head);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+@media (max-width:560px){.wpn{grid-template-columns:minmax(0,1fr) 64px 30px;grid-template-areas:"nm nm x" "sk w w" "r r r" "note note note"}}
+
+/* ---------- modo de combate ---------- */
+.combat{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:20px;align-items:start;position:relative}
+.combat>.col{animation:slidein .5s cubic-bezier(.2,.8,.2,1) both}
+.combat>.col:last-child{animation-delay:.08s}
+@keyframes slidein{from{transform:translateY(18px);opacity:.3}to{transform:none;opacity:1}}
+@media (max-width:980px){.combat{grid-template-columns:minmax(0,1fr)}}
+.opp{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.opp .seg button{padding:6px 10px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.tile{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:center;text-align:left;background:var(--plate);border:0;border-left:4px solid var(--line);padding:9px 10px 9px 11px;cursor:pointer;color:var(--ink);transition:transform .15s,border-color .2s,background .2s}
+.tile:hover{transform:translateY(-2px);border-left-color:var(--fac)}
+.tile .k{grid-column:1/-1;font:700 10px/1.3 var(--f-head);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+.tile .tn{font:700 15px/1.2 var(--f-head);letter-spacing:.03em}
+.tile .tf{grid-column:1;font-size:11.5px;color:var(--ink-2);line-height:1.3}
+.tile .tt{grid-row:2/span 2;grid-column:2;font:800 30px/1 var(--f-display);color:var(--fac-ink)}
+.tile[data-kind="Atacar"]{border-left-color:var(--red)}
+.tile[data-kind="Defender"]{border-left-color:var(--fac)}
+.tile[data-kind="Criar vantagem"]{border-left-color:var(--nt)}
+.tile.nt{background:color-mix(in srgb,var(--nt) 14%,var(--plate))}
+.tile.warn .tt{color:var(--red-ink)}
+.eject{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.eject small{color:var(--ink-2);flex:1 1 200px;font-size:12.5px}
+.scan{position:absolute;left:0;right:0;top:0;height:90px;pointer-events:none;opacity:0;z-index:3;background:linear-gradient(to bottom,transparent,color-mix(in srgb,var(--fac) 16%,transparent) 85%,var(--fac) 100%)}
+.scan.go{animation:scan 1.1s cubic-bezier(.4,0,.2,1)}
+@keyframes scan{0%{opacity:1;transform:translateY(-90px)}90%{opacity:1}100%{opacity:0;transform:translateY(var(--h,1200px))}}
+
+.filebar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:22px;padding-top:14px;border-top:1px solid var(--line)}
+.filebar small{color:var(--ink-2);flex:1 1 260px;font-size:12.5px}
+
+/* ---------- bandeja de dados ---------- */
+.tray{position:fixed;z-index:30;right:max(16px, calc(env(safe-area-inset-right, 0px) + 16px));bottom:calc(16px + env(safe-area-inset-bottom, 0px));width:min(330px, calc(100vw - 32px))}
+.tray-card{background:var(--armor);border:1px solid var(--line);box-shadow:var(--shadow);padding:0 14px 14px;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%);animation:dock .3s cubic-bezier(.2,.8,.2,1)}
+.tray-card .hd{margin:0 -14px 12px;padding-inline:14px}
+.dice{display:flex;gap:8px;perspective:400px}
+.fd{width:48px;height:48px;background:var(--plate);border:1.5px solid var(--ink);display:grid;place-items:center;font:800 32px/1 var(--f-display);color:var(--ink-2)}
+.fd[data-v="1"]{color:var(--fac-ink)}
+.fd[data-v="-1"]{color:var(--red-ink)}
+.fd.roll{animation:tumble .14s linear infinite}
+.fd.land{animation:land .26s cubic-bezier(.2,1.6,.4,1)}
+@keyframes tumble{from{transform:rotateX(0)}to{transform:rotateX(180deg)}}
+@keyframes land{from{transform:scale(1.18)}to{transform:none}}
+.res{display:flex;align-items:baseline;gap:10px;margin:12px 0 2px}
+.res b{font:800 46px/1 var(--f-display)}
+.res span{font:700 18px var(--f-head);letter-spacing:.06em;text-transform:uppercase;color:var(--fac-ink)}
+.brk{color:var(--ink-2);font-size:12.5px;margin:0}
+.tnote{font-size:12.5px;margin:6px 0 0;color:var(--ink)}
+.tnote.warn{color:var(--red-ink)}
+.tacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;align-items:center}
+.tacts label{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-2);cursor:pointer}
+.tacts input{width:auto}
+.pill{float:right;box-shadow:var(--shadow)}
+
+.toast{position:fixed;z-index:40;left:50%;bottom:calc(20px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%);background:var(--ink);color:var(--armor);font:600 13px var(--f-head);letter-spacing:.06em;padding:9px 14px;max-width:calc(100vw - 32px);text-align:center}
+.modal{position:fixed;inset:0;z-index:50;background:color-mix(in srgb,var(--hangar) 70%,transparent);display:grid;place-items:center;padding:16px}
+.modal-card{width:min(560px,100%);background:var(--armor);border:1px solid var(--line);box-shadow:var(--shadow);padding:0 16px 16px}
+.modal-card .hd{margin:0 -16px 12px}
+.modal textarea{height:220px;font:500 12.5px/1.4 ui-monospace,Consolas,monospace}
+
+/* ---------- modo Jogar: ficha limpa ---------- */
+[data-mode="play"] .edit-only{display:none!important}
+.view{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:980px){.view{grid-template-columns:minmax(0,1fr)}.view[data-show="pilot"] #vw-ms,.view[data-show="ms"] #vw-pilot{display:none}}
+.vcard{background:var(--armor);border:1px solid var(--line);border-top:3px solid var(--fac);padding:18px 20px 20px;display:grid;gap:20px;animation:dock .5s cubic-bezier(.2,.8,.2,1) both;min-width:0}
+.vh{display:grid;grid-template-columns:104px minmax(0,1fr);gap:16px;align-items:end}
+.vh img{width:104px;aspect-ratio:3/4;object-fit:cover;background:var(--plate);display:block}
+.vh img.dflt,.vhero img.dflt{object-fit:contain;mix-blend-mode:var(--img-blend);filter:var(--img-filter)}
+.vk{font:600 11px var(--f-head);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
+.vh h2,.vhero h2{margin:2px 0 6px;font:800 36px/1 var(--f-display);letter-spacing:.01em;text-wrap:balance}
+.vh p{margin:0;color:var(--ink-2);font-size:13.5px;max-width:52ch}
+.vmeta{display:flex;flex-wrap:wrap;gap:6px 20px;margin-top:12px;align-items:center}
+.vmeta span{display:inline-flex;align-items:center;gap:8px}
+.vmeta b{font:800 24px/1 var(--f-display)}
+.vhero{display:grid;gap:10px}
+.vhero img{width:100%;aspect-ratio:16/9;object-fit:cover;background:var(--plate);display:block}
+.vsec h3{margin:0 0 10px;font:700 11px var(--f-head);letter-spacing:.16em;text-transform:uppercase;color:var(--fac-ink);border-bottom:1px solid var(--line);padding-bottom:6px;display:flex;justify-content:space-between;gap:8px}
+.vsec h3 small{font:inherit;color:var(--ink-2);letter-spacing:.08em}
+.vasp{display:grid;grid-template-columns:84px minmax(0,1fr);gap:8px 14px;margin:0}
+.vasp dt{font:600 11px/1.6 var(--f-head);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
+.vasp dd{margin:0;font-size:14.5px;line-height:1.45}
+.vasp dd.nt{position:relative;padding-left:16px}
+.vasp dd.nt::before{content:"";position:absolute;left:0;top:.45em;width:8px;height:8px;transform:rotate(45deg);background:var(--nt)}
+.vasp dd.none{color:var(--ink-2)}
+@media (max-width:540px){.vasp{grid-template-columns:minmax(0,1fr)}.vasp dd{margin-bottom:4px}}
+/* cor de cada degrau, tirada da pintura de cada facção */
+.vsk,.pyr{--t4:#C23A2E;--t3:#2448A2;--t2:#B97F0E;--t1:#6F7F99}
+:root[data-faction="zeon"] .vsk,:root[data-faction="zeon"] .pyr{--t4:#9C2C26;--t3:#3F5D3A;--t2:#6E8F4E;--t1:#7D8270}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .vsk,:root:not([data-theme="light"]) .pyr{--t4:#E36A5E;--t3:#86A2F0;--t2:#E6B347;--t1:#93A1B9}:root:not([data-theme="light"])[data-faction="zeon"] .vsk,:root:not([data-theme="light"])[data-faction="zeon"] .pyr{--t4:#E36A5E;--t3:#8DB582;--t2:#B8CE7C;--t1:#A3A890}}
+:root[data-theme="dark"] .vsk,:root[data-theme="dark"] .pyr{--t4:#E36A5E;--t3:#86A2F0;--t2:#E6B347;--t1:#93A1B9}
+:root[data-theme="dark"][data-faction="zeon"] .vsk,:root[data-theme="dark"][data-faction="zeon"] .pyr{--t4:#E36A5E;--t3:#8DB582;--t2:#B8CE7C;--t1:#A3A890}
+.t4{--t:var(--t4)}.t3{--t:var(--t3)}.t2{--t:var(--t2)}.t1{--t:var(--t1)}
+.vsk{display:grid;gap:6px}
+.vsk-r{display:grid;grid-template-columns:62px minmax(0,1fr);gap:12px;align-items:center}
+.vsk-r .vk{display:grid;justify-items:end;line-height:1.15}
+.vsk-r .vk b{font:800 22px/1 var(--f-display);color:var(--t);letter-spacing:0}
+.vchips{display:flex;justify-content:center;gap:6px}
+.vchip{flex:0 0 calc((100% - 18px) / 4);min-width:0;border:0;border-top:3px solid var(--t);background:color-mix(in srgb,var(--t) 13%,var(--plate));color:var(--ink);padding:8px 4px 7px;font:600 14px/1.15 var(--f-head);letter-spacing:.02em;text-align:center;cursor:pointer;overflow-wrap:anywhere;transition:background .2s,transform .15s}
+.vchip:hover{background:color-mix(in srgb,var(--t) 26%,var(--plate));transform:translateY(-1px)}
+@media (max-width:540px){.vsk-r{grid-template-columns:minmax(0,1fr);gap:3px}.vsk-r .vk{justify-content:center;grid-auto-flow:column;gap:6px;align-items:baseline}}
+.pyr .tier-l b{color:var(--t)}
+.pyr .sk.filled{border-bottom-color:var(--t)}
+.vlist{display:grid;gap:12px}
+.vlist .it b{font:700 15px/1.25 var(--f-head);letter-spacing:.03em}
+.vlist .it p{margin:3px 0 0;font-size:13.5px;line-height:1.45}
+.vlist .it .tag{margin-left:6px;vertical-align:2px}
+.vlist .it.locked{opacity:.55}
+.vsys{display:grid;gap:7px}
+.vsys-r{display:grid;grid-template-columns:96px minmax(0,1fr) 34px;gap:10px;align-items:center;font-size:13.5px}
+.vsys-r span{font:600 12px var(--f-head);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.vbar{display:flex;gap:3px}
+.vbar i{flex:1;height:8px;background:var(--plate);border:1px solid var(--line)}
+.vbar i.on{background:var(--fac-ink);border-color:var(--fac-ink)}
+.vsys-r b{font:800 20px/1 var(--f-display);text-align:right}
+.vsys-r.down b{color:var(--red-ink);text-decoration:line-through}
+.vsys-r small{grid-column:2/-1;color:var(--red-ink);font-size:12px;margin-top:-4px}
+.vperk{font-size:13.5px;margin:0}
+.vwpn{display:grid;gap:10px}
+.vwpn .it{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px}
+.vwpn .it b{font:700 15px/1.25 var(--f-head)}
+.vwpn .it .w{font:800 20px/1 var(--f-display);color:var(--red-ink);text-align:right}
+.vwpn .it small{grid-column:1/-1;color:var(--ink-2);font-size:12.5px}
+.vnone{color:var(--ink-2);font-size:13px;font-style:italic;margin:0}
+
+/* ---------- encaixes de façanha ---------- */
+.toggle{display:inline-flex;align-items:center;gap:8px;font:600 11.5px var(--f-head);letter-spacing:.08em;text-transform:uppercase;background:transparent;border:1px solid var(--line);color:var(--ink);padding:5px 9px;cursor:pointer}
+.toggle::before{content:"";width:12px;height:12px;border:1.5px solid var(--ink-2);transition:background .2s}
+.toggle[aria-pressed="true"]::before{background:var(--nt);border-color:var(--nt)}
+.sock-h{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.sockets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.sock{flex:1 1 92px;min-height:44px;border:1.5px dashed var(--line);display:grid;align-content:center;justify-items:center;gap:1px;font:600 11px/1.2 var(--f-head);text-transform:uppercase;letter-spacing:.06em;color:var(--ink-2);padding:5px 6px;text-align:center;transition:border-color .25s,background .25s,color .25s}
+.sock b{font:700 12.5px/1.15 var(--f-head);letter-spacing:.02em;text-transform:none;color:var(--ink);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sock.full{border-style:solid;border-color:var(--fac);background:color-mix(in srgb,var(--fac) 9%,transparent)}
+.sock.paid{border-style:solid;border-color:var(--red);background:color-mix(in srgb,var(--red) 8%,transparent)}
+.sock.traded{border-style:solid;border-color:var(--nt);color:var(--nt-ink);animation:trade .45s cubic-bezier(.2,1.5,.4,1)}
+.sock.traded i{width:12px;height:12px;transform:rotate(45deg);background:var(--nt);display:block;margin-bottom:3px}
+@keyframes trade{from{transform:scale(.9)}to{transform:none}}
+
+/* ---------- criador de façanha ---------- */
+.bcard{width:min(720px,100%);max-height:calc(100% - 8px);overflow-y:auto}
+.btypes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:16px}
+@media (max-width:560px){.btypes{grid-template-columns:minmax(0,1fr)}}
+.btype{text-align:left;border:1.5px solid var(--line);background:var(--plate);color:var(--ink);padding:8px 10px;cursor:pointer;display:grid;gap:2px;transition:border-color .2s,background .2s}
+.btype b{font:700 14px/1.2 var(--f-head);letter-spacing:.04em;text-transform:uppercase}
+.btype small{font-size:12px;color:var(--ink-2);line-height:1.3}
+.btype[aria-pressed="true"]{border-color:var(--fac);background:color-mix(in srgb,var(--fac) 12%,var(--plate))}
+.bwho{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.sentence{font:600 clamp(18px,2.6vw,23px)/1.85 var(--f-head);letter-spacing:.01em;background:var(--plate);padding:14px 16px;border-left:4px solid var(--fac);margin-bottom:14px}
+.sentence .slot{display:inline-block;vertical-align:baseline;font:inherit;line-height:1.3;color:var(--fac-ink);background:transparent;border:0;border-bottom:2px dashed var(--fac);padding:0 4px;margin:0 2px;min-width:6ch;max-width:100%;width:auto}
+.sentence .slot.filled{border-bottom-style:solid;animation:snap .3s cubic-bezier(.2,1.5,.4,1)}
+.sentence select.slot{cursor:pointer;padding-right:2px}
+.sentence .plus{color:var(--red-ink);font-weight:800}
+@keyframes snap{from{transform:translateY(-3px)}to{transform:none}}
+.bchecks{display:grid;gap:6px;margin-bottom:14px}
+.chk{display:grid;grid-template-columns:24px minmax(0,1fr);gap:8px;align-items:start;font-size:13px}
+.chk i{width:22px;height:22px;border:1.5px solid var(--line);display:grid;place-items:center;font:800 13px/1 var(--f-head);font-style:normal;color:var(--ink-2)}
+.chk[data-s="ok"] i{border-color:var(--fac);background:var(--fac);color:var(--on-fac)}
+.chk[data-s="warn"] i{border-color:var(--nt);background:var(--nt);color:var(--on-nt)}
+.chk[data-s="fail"] i{border-color:var(--red);color:var(--red-ink)}
+.chk.stamp i{animation:stamp .3s cubic-bezier(.2,1.5,.4,1)}
+.bfoot{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end}
+.bfoot .row{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.bfoot label.chkbox{display:inline-flex;gap:6px;align-items:center;font-size:13px;color:var(--ink-2);cursor:pointer}
+.bfoot label.chkbox input{width:auto}
+.stunt.fresh{animation:ntflash 1s ease-out}
+
+/* ---------- manual ---------- */
+.manual{display:grid;grid-template-columns:210px minmax(0,1fr);gap:24px;margin-top:22px}
+.toc{position:sticky;top:calc(env(safe-area-inset-top, 0px) + 16px);align-self:start;display:grid;gap:2px}
+.toc a{font:600 12.5px var(--f-head);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);text-decoration:none;padding:6px 10px;border-left:2px solid var(--line);transition:color .2s,border-color .2s}
+.toc a:hover{color:var(--ink);border-color:var(--fac)}
+@media (max-width:860px){.manual{grid-template-columns:minmax(0,1fr)}.toc{position:static;display:flex;flex-wrap:wrap;gap:6px}.toc a{border:1px solid var(--line)}}
+.doc{display:grid;gap:16px;min-width:0}
+.prose{max-width:70ch}
+.prose p,.prose ul{margin:0 0 10px}
+.prose ul{padding-left:18px}
+.prose li{margin-bottom:4px}
+.prose h3{font:700 14.5px var(--f-head);letter-spacing:.08em;text-transform:uppercase;margin:18px 0 6px;color:var(--fac-ink)}
+.tbl{overflow-x:auto;margin:6px 0 12px;max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:420px}
+th{font:600 11px var(--f-head);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);text-align:left;border-bottom:1.5px solid var(--ink-2);padding:6px 8px;white-space:nowrap}
+td{border-bottom:1px solid var(--line);padding:7px 8px;vertical-align:top}
+td.num{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.k{font-weight:600}
+/* passos de montagem */
+.stepn{display:inline-grid;place-items:center;width:26px;height:26px;background:var(--ink);color:var(--armor);font:800 16px/1 var(--f-display);margin-right:8px;vertical-align:middle}
+.eq{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 14px;padding:12px;background:var(--plate)}
+.eq figure{margin:0;display:grid;justify-items:center;gap:4px;text-align:center}
+.eq figure img{height:150px;width:auto;mix-blend-mode:var(--img-blend);filter:var(--img-filter)}
+.eq figcaption{font:700 12px/1.25 var(--f-head);letter-spacing:.05em;text-transform:uppercase}
+.eq figcaption b{display:block;font:800 26px/1 var(--f-display);color:var(--fac-ink);letter-spacing:0}
+.op{font:800 34px/1 var(--f-display);color:var(--ink-2)}
+.eq .dicebox{display:flex;gap:4px}
+.eq .dicebox span{width:30px;height:30px;border:1.5px solid var(--ink);display:grid;place-items:center;font:800 20px/1 var(--f-display);background:var(--armor)}
+.eq .result{font:800 44px/1 var(--f-display)}
+.eq .result small{display:block;font:700 13px var(--f-head);letter-spacing:.08em;text-transform:uppercase;color:var(--fac-ink)}
+.scalefig{display:flex;align-items:flex-end;gap:22px;padding:14px 16px 10px;background:var(--plate);margin:0 0 12px;flex-wrap:wrap}
+.scalefig figure{margin:0;display:grid;justify-items:center;gap:4px}
+.scalefig img{width:auto;mix-blend-mode:var(--img-blend);filter:var(--img-filter)}
+.scalefig figcaption{font:700 11px var(--f-head);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);text-align:center}
+.mfigs{display:grid;grid-template-columns:minmax(0,.75fr) minmax(0,1.5fr);gap:12px 16px;margin:0 0 12px;align-items:end}
+.mfigs .mfig-c:first-child{grid-row:span 2;align-self:center}
+.mfigs .mfig-c:not(:first-child) .mfig{max-width:none}
+@media (max-width:640px){.mfigs{grid-template-columns:minmax(0,1fr)}.mfigs .mfig-c:first-child{grid-row:auto}}
+.mfig-c{margin:0;display:grid;gap:4px}
+.mfig-c figcaption{font:700 11px var(--f-head);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);text-align:center}
+.mfig{max-width:300px;margin:0 auto}
+.mfig .zone{cursor:default}
+.mfig .zone:hover{transform:translate(-50%,-50%)}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+</style>
+
+<div class="wrap">
+  <header class="deck">
+    <div class="brand">
+      <h1 class="title">FATE <span class="g">GUNDAM</span></h1>
+      <p class="sub">Piloto e mobile suit para Fate Core <span class="kana">パイロット・モビルスーツ</span></p>
+    </div>
+    <div class="tools">
+      <div class="seg" role="group" aria-label="Modo da ficha">
+        <button type="button" data-mode="play" aria-pressed="false">Jogar</button>
+        <button type="button" data-mode="edit" aria-pressed="true">Editar</button>
+      </div>
+      <div class="seg edit-only" role="group" aria-label="Facção">
+        <button type="button" data-fac="fed" aria-pressed="true">Federação</button>
+        <button type="button" data-fac="zeon" aria-pressed="false">Zeon</button>
+      </div>
+      <div class="seg" role="group" aria-label="Vista">
+        <button type="button" data-view="ficha" aria-pressed="true">Ficha</button>
+        <button type="button" data-view="manual" aria-pressed="false">Manual</button>
+      </div>
+    </div>
+    <div class="rail" aria-hidden="true"></div>
+  </header>
+
+  <!-- ================= FICHA ================= -->
+  <section id="v-ficha">
+    <div class="link">
+      <div class="link-side"><small>Piloto</small><b id="lk-pilot">—</b></div>
+      <button type="button" class="hatch" id="cockpit" aria-pressed="false" aria-label="Alternar modo de combate: piloto na cabine">
+        <span class="shutter l"></span><span class="shutter r"></span><span class="lbl" id="hatch-lbl">Entrar na cabine</span>
+      </button>
+      <div class="link-side r"><small><span id="lk-kind">Mobile suit</span> · escala <span id="lk-scale">2</span></small><b id="lk-ms">—</b></div>
+    </div>
+    <p class="link-note" id="link-note"></p>
+
+    <div class="seg mswitch" id="mswitch" role="group" aria-label="Mostrar ficha">
+      <button type="button" data-show="pilot" aria-pressed="true">Piloto</button>
+      <button type="button" data-show="ms" aria-pressed="false">Máquina</button>
+    </div>
+
+    <!-- modo de combate -->
+    <div class="combat" id="combat" hidden>
+      <div class="scan" id="scan" aria-hidden="true"></div>
+      <div class="col" id="cb-left">
+        <article class="panel"><div class="in">
+          <header class="hd"><h2>Ações na cabine</h2><span class="kana">戦闘</span></header>
+          <div class="opp"><span class="lbl">Escala do oponente</span>
+            <div class="seg" role="group" aria-label="Escala do oponente" id="opp"></div>
+          </div>
+          <div class="tiles" id="tiles"></div>
+          <div class="eject">
+            <small id="eject-note"></small>
+            <button type="button" class="btn sm warn" data-act="eject" id="btn-eject">Ejetar</button>
+          </div>
+        </div></article>
+      </div>
+      <div class="col" id="cb-right"></div>
+    </div>
+
+    <div class="view" id="view" data-show="pilot" hidden>
+      <div class="col" id="vw-pilot"><article class="vcard" id="vc-pilot"></article></div>
+      <div class="col" id="vw-ms"><article class="vcard" id="vc-ms"></article></div>
+    </div>
+
+    <div class="cols" id="cols" data-show="pilot">
+      <!-- ---------- PILOTO ---------- -->
+      <div class="col" id="col-pilot">
+        <article class="panel" style="--i:0"><div class="in">
+          <header class="hd"><h2>Piloto</h2><span class="kana">パイロット</span></header>
+          <div class="ident">
+            <figure class="slot-img portrait" id="img-pilot">
+              <img alt="Retrato do piloto">
+              <span class="decal" id="p-dflt">Figura padrão</span>
+              <span class="decal nt" id="p-decal" hidden>Newtype</span>
+              <div class="img-act">
+                <label class="btn sm">Imagem<input type="file" accept="image/*" id="f-pilot-img" aria-label="Enviar retrato"></label>
+                <button type="button" class="btn sm ghost" data-prompt="pilot">Prompt</button>
+                <button type="button" class="btn sm ghost" data-rmimg="pilot" hidden>Tirar</button>
+              </div>
+            </figure>
+            <div class="ident-f">
+              <label class="fld"><span>Nome</span><input id="p-name" data-bind="pilot.name" placeholder="Nome do piloto"></label>
+              <label class="fld"><span>Descrição</span><textarea id="p-desc" rows="3" data-bind="pilot.desc" placeholder="Quem é, de onde vem, o que quer"></textarea></label>
+              <div class="meters">
+                <div class="meter"><span class="lbl">Recarga</span><b id="refresh">3</b><small id="refresh-note"></small></div>
+                <div class="meter"><span class="lbl">Pontos de destino</span>
+                  <div class="fp-row">
+                    <button type="button" class="step" data-fp="-1" aria-label="Gastar ponto de destino">−</button>
+                    <span class="fp-n" id="fp-n">3</span>
+                    <button type="button" class="step" data-fp="1" aria-label="Ganhar ponto de destino">+</button>
+                    <div class="pips" id="fp-pips" aria-hidden="true"></div>
+                  </div>
+                  <small>Volta à Recarga no início da sessão.</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div></article>
+
+        <article class="panel" style="--i:1"><div class="in">
+          <header class="hd"><h2>Aspectos</h2><span class="kana">アスペクト</span></header>
+          <div id="asp-pilot"></div>
+          <p class="hint">Marque <b>NT</b> no aspecto que faz do personagem um Newtype. Só um por ficha; ele libera as façanhas Newtype e as armas psicomu.</p>
+        </div></article>
+
+        <article class="panel" style="--i:2"><div class="in">
+          <header class="hd"><h2>Perícias</h2><span class="kana">技能</span></header>
+          <div class="pyr" id="pyr"></div>
+          <div class="row-tools">
+            <span class="hint" style="margin:0">Fora da pirâmide, a perícia vale Medíocre (+0). As somas com a máquina aparecem ao fechar a escotilha.</span>
+            <button type="button" class="btn sm ghost" data-act="roll4">Rolar 4dF</button>
+          </div>
+        </div></article>
+
+        <article class="panel" style="--i:3"><div class="in">
+          <header class="hd"><h2>Façanhas</h2><span class="kana">特技</span></header>
+          <div class="sock-h"><span class="lbl">Encaixes</span><button type="button" class="toggle" id="trade" aria-pressed="false">Trocar encaixes vazios por Recarga</button></div>
+          <div class="sockets" id="sockets" aria-live="polite"></div>
+          <div id="st-pilot"></div>
+          <div class="adder">
+            <select id="lib-pilot" aria-label="Façanha da lista"></select>
+            <button type="button" class="btn sm fac" data-add-stunt="pilot">Adicionar</button>
+            <button type="button" class="btn sm" data-build="pilot">Criar façanha</button>
+          </div>
+        </div></article>
+
+        <article class="panel"><div class="in" data-eq-editor="pilot"></div></article>
+        <article class="panel" style="--i:4" id="pn-pstress"><div class="in">
+          <header class="hd red"><h2>Estresse e consequências</h2><span class="kana">ストレス</span></header>
+          <div class="dmg-grid">
+            <div>
+              <div class="track-b"><div class="track-h"><span class="lbl">Físico</span><small id="tn-f"></small></div><div class="track" id="tr-f"></div></div>
+              <div class="track-b"><div class="track-h"><span class="lbl">Mental</span><small id="tn-m"></small></div><div class="track" id="tr-m"></div></div>
+            </div>
+            <div class="cons" id="cons-pilot"></div>
+          </div>
+        </div></article>
+      </div>
+
+      <!-- ---------- MÁQUINA ---------- -->
+      <div class="col" id="col-ms">
+        <article class="panel" style="--i:1"><div class="in">
+          <header class="hd"><h2 id="ms-h">Mobile suit</h2><span class="kana" id="ms-kana">モビルスーツ</span></header>
+          <figure class="slot-img hero" id="img-ms">
+            <img alt="Imagem da máquina">
+            <span class="decal" id="ms-decal"></span>
+            <div class="img-act">
+              <label class="btn sm">Imagem<input type="file" accept="image/*" id="f-ms-img" aria-label="Enviar imagem da máquina"></label>
+              <button type="button" class="btn sm ghost" data-prompt="ms">Prompt</button>
+              <button type="button" class="btn sm ghost" data-rmimg="ms" hidden>Tirar</button>
+            </div>
+          </figure>
+          <div class="ms-meta">
+            <label class="fld"><span>Designação</span><input id="m-name" data-bind="ms.name" placeholder="Ex.: MS-06 Zaku II"></label>
+            <label class="fld"><span>Classe</span><select id="ms-cls"></select></label>
+            <div class="scale"><span class="lbl">Escala</span><b id="ms-scale">2</b></div>
+          </div>
+          <p class="perk" id="cls-perk"></p>
+        </div></article>
+
+        <article class="panel" style="--i:2"><div class="in">
+          <header class="hd"><h2>Aspectos da máquina</h2><span class="kana">アスペクト</span></header>
+          <div id="asp-ms"></div>
+        </div></article>
+
+        <article class="panel" style="--i:3"><div class="in">
+          <header class="hd"><h2>Sistemas</h2><span class="kana">システム</span></header>
+          <div class="budget" id="budget"><span class="lbl">Pontos</span><div class="bar" id="bar"></div><span class="budget-t" id="budget-t"></span></div>
+          <div id="sys"></div>
+        </div></article>
+
+        <article class="panel" style="--i:4"><div class="in">
+          <header class="hd"><h2>Façanhas de sistema</h2><span class="kana">特殊装備</span></header>
+          <p class="limit" id="ms-limit"></p>
+          <div id="st-ms"></div>
+          <div class="adder">
+            <select id="lib-ms" aria-label="Façanha de sistema da lista"></select>
+            <button type="button" class="btn sm fac" data-add-stunt="ms">Adicionar</button>
+            <button type="button" class="btn sm" data-build="ms">Criar façanha</button>
+          </div>
+        </div></article>
+
+        <article class="panel" style="--i:5"><div class="in">
+          <div data-eq-editor="ms"></div>
+        </div></article>
+
+        <article class="panel" style="--i:6" id="pn-mdmg"><div class="in">
+          <header class="hd red"><h2>Estrutura e avarias</h2><span class="kana">損傷</span></header>
+          <div class="track-b"><div class="track-h"><span class="lbl">Estresse estrutural</span><small id="tn-ms"></small></div><div class="track" id="tr-ms"></div></div>
+          <div class="dmg-wrap" id="dmg-wrap">
+            <div class="dfig" id="dfig"><img src="assets/ms.webp" alt="Diagrama do mobile suit para marcar avarias"></div>
+            <div class="cons" id="cons-ms"></div>
+          </div>
+          <p class="hint">Escolha a linha da avaria e toque no corpo. Avaria moderada ou severa zera o sistema daquele local até o reparo.</p>
+        </div></article>
+      </div>
+    </div>
+
+    <div class="filebar edit-only">
+      <small id="file-note">Fica salvo neste navegador. Exporte para levar a ficha para outro lugar.</small>
+      <button type="button" class="btn sm ghost" data-act="example">Exemplo: Lalah Sune</button>
+      <button type="button" class="btn sm ghost" data-act="new" id="btn-new">Nova ficha</button>
+      <button type="button" class="btn sm" data-act="export">Exportar</button>
+      <label class="btn sm" style="position:relative">Importar<input type="file" accept=".json,application/json" id="f-import" aria-label="Importar ficha" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%"></label>
+    </div>
+  </section>
+
+  <!-- ================= MANUAL ================= -->
+  <section id="v-manual" hidden>
+    <div class="manual">
+      <nav class="toc" aria-label="Seções do manual">
+        <a href="#m-fichas">Duas fichas</a>
+        <a href="#m-cabine">Na cabine</a>
+        <a href="#m-pilotagem">Pilotagem</a>
+        <a href="#m-facanhas">Façanhas</a>
+        <a href="#m-newtype">Newtype</a>
+        <a href="#m-montar">Montar a máquina</a>
+        <a href="#m-dano">Dano e reparo</a>
+        <a href="#m-ponte">A nave e a ponte</a>
+        <a href="#m-escala">Escala</a>
+        <a href="#m-minovsky">Minovsky</a>
+        <a href="#m-escada">Escada</a>
+      </nav>
+      <div class="doc">
+
+        <article class="panel" id="m-fichas"><div class="in">
+          <header class="hd"><h2>Duas fichas, um piloto no comando</h2><span class="kana">二枚</span></header>
+          <div class="prose">
+            <p><span class="stepn">1</span>O Fate trata qualquer coisa importante como personagem (a <b>Regra de Bronze</b>). O mobile suit ganha aspectos, perícias próprias chamadas <b>Sistemas</b>, façanhas, estresse e consequências chamadas <b>Avarias</b>.</p>
+            <p><span class="stepn">2</span>A máquina não tem Recarga nem Pontos de Destino. Quem decide, invoca e gasta é o piloto. O mestre força os aspectos da máquina como os de qualquer personagem.</p>
+            <p><span class="stepn">3</span>Piloto: cinco aspectos (Conceito, Problema e três livres); pirâmide de uma perícia +4, duas +3, três +2, quatro +1; três façanhas grátis e Recarga 3. Estresse com duas caixas; Vigor e Vontade +1 ou +2 abrem a terceira, +3 ou +4 abrem a quarta. A ficha calcula tudo isso.</p>
+          </div>
+        </div></article>
+
+        <article class="panel" id="m-cabine"><div class="in">
+          <header class="hd"><h2>Na cabine</h2><span class="kana">コックピット</span></header>
+          <div class="eq" aria-label="Exemplo: Atirar mais Mira mais 4dF">
+            <figure><img src="assets/piloto.webp" alt="Piloto"><figcaption>Atirar do piloto<b>+3</b></figcaption></figure>
+            <span class="op">+</span>
+            <figure><img src="assets/ms.webp" alt="Mobile suit"><figcaption>Mira da máquina<b>+2</b></figcaption></figure>
+            <span class="op">+</span>
+            <figure><span class="dicebox"><span>+</span><span>+</span><span></span><span>−</span></span><figcaption>4dF<b>+1</b></figcaption></figure>
+            <span class="op">=</span>
+            <span class="result">+6<small>Fantástico</small></span>
+          </div>
+          <div class="tbl"><table>
+            <thead><tr><th>Perícia do piloto</th><th>Sistema que soma</th><th>Usos</th></tr></thead>
+            <tbody>
+              <tr><td class="k">Pilotagem</td><td>Mobilidade</td><td>Defender, mover, perseguir, fugir</td></tr>
+              <tr><td class="k">Atirar</td><td>Mira</td><td>Armas de disparo</td></tr>
+              <tr><td class="k">Lutar</td><td>Combate</td><td>Sabre, machado, corpo a corpo</td></tr>
+              <tr><td class="k">Percepção</td><td>Sensores</td><td>Detectar e ordem de turno</td></tr>
+              <tr><td class="k">Vontade</td><td>Mira</td><td>Bits e funnels (aspecto NT + Psicomunicador)</td></tr>
+              <tr><td class="k">Empatia</td><td>Mobilidade</td><td>Só com a façanha Flash Newtype, para defender</td></tr>
+            </tbody>
+          </table></div>
+          <div class="prose"><p>Na ficha, fechar a escotilha abre o <b>modo de combate</b>: cada ação já aparece com a soma pronta, e um toque rola.</p></div>
+        </div></article>
+
+        <article class="panel" id="m-pilotagem"><div class="in">
+          <header class="hd"><h2>Pilotagem e o resto da cabine</h2><span class="kana">操縦</span></header>
+          <div class="prose">
+            <p><b>Pilotagem substitui Condução</b> e cobre tudo que tem comando: carro, Core Fighter, nave e mobile suit. Mirai Yashima conduz a White Base com a mesma perícia que Amuro usa no Gundam.</p>
+            <h3>Outras perícias com trabalho na cabine</h3>
+          </div>
+          <div class="tbl"><table>
+            <thead><tr><th>Perícia</th><th>Ação</th><th>Efeito</th></tr></thead>
+            <tbody>
+              <tr><td class="k">Vigor</td><td>Manobra extrema (criar vantagem)</td><td>Posição que ninguém aguentaria. Falhou: estresse físico igual à diferença, pela força G.</td></tr>
+              <tr><td class="k">Conhecimentos</td><td>Ler o inimigo (criar vantagem)</td><td>Revela ou cria um aspecto do MS inimigo (<i>Junta do joelho exposta</i>).</td></tr>
+              <tr><td class="k">Comunicação</td><td>Ordem pelo rádio (criar vantagem)</td><td>A invocação grátis vai para um aliado.</td></tr>
+              <tr><td class="k">Ofícios</td><td>Remendo na cabine (superar)</td><td>Gasta a ação; contra Ótimo (+4), restaura funcionamento até o fim da cena, sem apagar a avaria.</td></tr>
+            </tbody>
+          </table></div>
+          <div class="prose"><p>Lista de perícias: Atirar, Atletismo, Comunicação, Conhecimentos, Contatos, Empatia, Enganar, Furtividade, Investigação, Lutar, Ofícios, Percepção, <b>Pilotagem</b>, Provocar, Recursos, Roubo, Vigor, Vontade. Atletismo não funciona dentro da máquina.</p></div>
+        </div></article>
+
+        <article class="panel" id="m-facanhas"><div class="in">
+          <header class="hd"><h2>Façanhas e Recarga</h2><span class="kana">特技</span></header>
+          <div class="prose">
+            <p><span class="stepn">1</span><b>Encaixes.</b> Todo piloto tem três encaixes de façanha grátis. Cada façanha além do terceiro custa 1 de Recarga, com mínimo 1.</p>
+            <p><span class="stepn">2</span><b>Trocar encaixes por Recarga</b> (regra opcional da mesa). Cada encaixe grátis que fica vazio vira +1 de Recarga: sem nenhuma façanha, a Recarga vai a 6. Serve para quem prefere viver de aspectos e pontos de destino.</p>
+            <p><span class="stepn">3</span><b>Escrever uma façanha.</b> O livro dá três moldes. O <b>Criador de façanha</b> da ficha monta a frase e confere cada regra enquanto você escolhe.</p>
+          </div>
+          <div class="tbl"><table>
+            <thead><tr><th>Molde</th><th>Frase</th><th>Cuidado</th></tr></thead>
+            <tbody>
+              <tr><td class="k">Bônus de +2</td><td>Porque eu…, recebo +2 em [perícia] para [ação] quando [circunstância].</td><td>Uma perícia, uma ação, circunstância estreita.</td></tr>
+              <tr><td class="k">Nova ação</td><td>Porque eu…, posso usar [perícia] para [ação] quando [circunstância].</td><td>A perícia não pode já fazer essa ação.</td></tr>
+              <tr><td class="k">Exceção à regra</td><td>Porque eu…, uma vez por [cena ou sessão], [efeito].</td><td>Efeito forte pede limite de uso; sem limite, fica do tamanho de +2.</td></tr>
+            </tbody>
+          </table></div>
+        </div></article>
+
+        <article class="panel" id="m-newtype"><div class="in">
+          <header class="hd"><h2>Newtype</h2><span class="kana">ニュータイプ</span></header>
+          <div class="prose">
+            <p><span class="stepn">1</span><b>Permissão.</b> Só quem tem um aspecto marcado NT compra façanhas Newtype e opera armas psicomu. Um por ficha, em qualquer posição, inclusive no Problema.</p>
+            <p><span class="stepn">2</span><b>Custo.</b> As façanhas Newtype saem das três grátis ou da Recarga. O espaço de aspecto é o preço de entrada. Sugestão: um ou dois Newtypes por grupo.</p>
+            <p><span class="stepn">3</span><b>Forçar.</b> Sentir alguém morrer e perder a troca; um laboratório (Instituto Flanagan, Laboratório Murasame) atrás de você; outro Newtype te achando escondido; superiores te usando como arma.</p>
+            <p><span class="stepn">4</span><b>Ressonância.</b> Dois Newtypes na mesma cena podem invocar o aspecto NT um do outro. Entre eles não há emboscada.</p>
+            <p><span class="stepn">5</span><b>Newtype artificial.</b> Aspecto que deixa claro a origem de laboratório. Uma vez por sessão o mestre força esse aspecto e o jogador não pode recusar; ainda recebe o ponto.</p>
+            <h3>Façanhas Newtype</h3>
+            <ul id="nt-list"></ul>
+          </div>
+        </div></article>
+
+        <article class="panel" id="m-montar"><div class="in">
+          <header class="hd"><h2>Montar a máquina</h2><span class="kana">組立</span></header>
+          <div class="prose"><p>Toda máquina de jogador tem o <b>mesmo orçamento</b>: 5 pontos de sistema, máximo +2 em cada, duas façanhas de sistema. A classe muda a escala e dá uma vantagem com custo.</p></div>
+          <div class="tbl"><table>
+            <thead><tr><th>Classe</th><th>Exemplos</th><th>Escala</th><th>O que muda</th></tr></thead>
+            <tbody id="cls-table"></tbody>
+          </table></div>
+          <div class="prose">
+            <h3>Aspectos</h3>
+            <p><b>Conceito</b>: o que é e para quem foi feita. <b>Defeito</b>: o que trai a máquina na hora errada. <b>Marca</b>: história, pintura, quem pilotou antes.</p>
+            <h3>Armas</h3>
+            <p><b>Arma:1</b> para vulcan e metralhadora; <b>Arma:2</b> para rifle de feixe, sabre, bazuca e mega partícula. A diferença de tamanho vem da escala, não do número da arma.</p>
+            <h3>Façanhas de sistema</h3>
+            <ul id="ms-st-list"></ul>
+          </div>
+        </div></article>
+
+        <article class="panel" id="m-dano"><div class="in">
+          <header class="hd red"><h2>Dano e reparo</h2><span class="kana">損傷</span></header>
+          <div class="mfigs" id="mfigs"></div>
+          <div class="prose">
+            <p><span class="stepn">1</span><b>Estrutura</b> define as caixas: +0 dá duas, +1 dá três, +2 dá quatro.</p>
+            <p><span class="stepn">2</span><b>Avaria tem local.</b> Cada tipo de máquina tem o próprio corpo, desenhado acima. Avaria moderada ou severa zera o sistema daquele local até o reparo. No mobile suit, cabeça tira Sensores, braço direito tira Mira, braço esquerdo tira Combate, pernas e propulsores tiram Mobilidade. Na mobile armor, sensor, canhões e propulsores. Na nave, ponte tira Sensores, torres tiram Mira, motores tiram Mobilidade; hangar e casco não derrubam sistema, mas uma avaria no hangar vira o aspecto que impede lançar ou recolher MS. Avaria suave é só aspecto.</p>
+            <p><span class="stepn">3</span><b>O piloto</b> só marca estresse físico quando o atacante cria antes a vantagem <i>Cabine exposta</i>, ou quando a máquina é tirada de ação.</p>
+            <p><span class="stepn">4</span><b>Ejetar é conceder.</b> Ganha 1 ponto de destino mais 1 por avaria da máquina. A campanha ganha o aspecto <i>Sem máquina</i> até alguém conseguir outra: uma cena de Recursos ou de Contatos, contra Ótimo (+4) para produção em massa e Fantástico (+6) para o resto.</p>
+          </div>
+          <div class="tbl"><table>
+            <thead><tr><th>Avaria</th><th>Reparo com Ofícios</th><th>Some depois de</th></tr></thead>
+            <tbody>
+              <tr><td class="k">Suave (2)</td><td>Razoável (+2)</td><td>uma cena</td></tr>
+              <tr><td class="k">Moderada (4)</td><td>Ótimo (+4)</td><td>uma sessão</td></tr>
+              <tr><td class="k">Severa (6)</td><td>Fantástico (+6)</td><td>um cenário</td></tr>
+            </tbody>
+          </table></div>
+        </div></article>
+
+        <article class="panel" id="m-ponte"><div class="in">
+          <header class="hd"><h2>A nave e a ponte</h2><span class="kana">艦橋</span></header>
+          <div class="prose">
+            <p>A nave é outro personagem, montado com a mesma ficha de máquina na classe <b>Nave de guerra</b> (escala 3). Quem não pilota faz a ficha dele normalmente e escolhe a nave na coluna da máquina; o modo de combate mostra as mesmas ações, agora somando os sistemas da nave.</p>
+          </div>
+          <div class="tbl"><table>
+            <thead><tr><th>Posto</th><th>Rolagem</th><th>Na batalha</th></tr></thead>
+            <tbody>
+              <tr><td class="k">Comando</td><td>Comunicação</td><td>Ordem: cria vantagem cuja invocação grátis vai para um piloto</td></tr>
+              <tr><td class="k">Operação</td><td>Percepção + Sensores</td><td>Acha o inimigo e passa a posição como aspecto</td></tr>
+              <tr><td class="k">Timão</td><td>Pilotagem + Mobilidade</td><td>Move e defende a nave</td></tr>
+              <tr><td class="k">Artilharia</td><td>Atirar + Mira</td><td>Canhões da nave</td></tr>
+              <tr><td class="k">Mecânica</td><td>Ofícios</td><td>Repara avarias de um MS que volta ao hangar no meio da luta</td></tr>
+            </tbody>
+          </table></div>
+        </div></article>
+
+        <article class="panel" id="m-escala"><div class="in">
+          <header class="hd"><h2>Escala</h2><span class="kana">スケール</span></header>
+          <div class="scalefig" aria-label="Pessoa ao lado de um mobile suit, em proporção">
+            <figure><img src="assets/piloto.webp" alt="Pessoa" style="height:22px"><figcaption>Pessoa<br>escala 0</figcaption></figure>
+            <figure><img src="assets/ms.webp" alt="Mobile suit" style="height:220px"><figcaption>Mobile suit · 18 m<br>escala 2</figcaption></figure>
+          </div>
+          <div class="tbl"><table>
+            <thead><tr><th>Escala</th><th>O que entra</th></tr></thead>
+            <tbody>
+              <tr><td class="num">0</td><td>Pessoa a pé</td></tr>
+              <tr><td class="num">1</td><td>Veículo: tanque, Core Fighter, mobile pod (Ball)</td></tr>
+              <tr><td class="num">2</td><td>Mobile suit</td></tr>
+              <tr><td class="num">3</td><td>Mobile armor e nave de guerra</td></tr>
+            </tbody>
+          </table></div>
+          <div class="prose"><p>Por degrau de diferença, o maior soma +1 ao atacar e ao defender contra o menor, e cada acerto dele causa +2 tensões por degrau. O menor sobrevive criando vantagem. No modo de combate, escolha a escala do oponente e a ficha soma sozinha.</p></div>
+        </div></article>
+
+        <article class="panel" id="m-minovsky"><div class="in">
+          <header class="hd"><h2>Partículas Minovsky</h2><span class="kana">ミノフスキー</span></header>
+          <div class="prose"><p><i>Partículas Minovsky densas</i> é aspecto de cena na maioria das batalhas. Com ele ativo, Sensores só somam na mesma zona ou na adjacente, e rádio entre zonas distantes exige criar vantagem antes (laser, sinalizador). Ressonância ignora o limite para notar pessoas.</p></div>
+        </div></article>
+
+        <article class="panel" id="m-escada"><div class="in">
+          <header class="hd"><h2>Escada</h2><span class="kana">ラダー</span></header>
+          <div class="tbl"><table>
+            <thead><tr><th>Valor</th><th>Nome</th><th>Valor</th><th>Nome</th></tr></thead>
+            <tbody>
+              <tr><td class="num">+8</td><td>Lendário</td><td class="num">+2</td><td>Razoável</td></tr>
+              <tr><td class="num">+7</td><td>Épico</td><td class="num">+1</td><td>Regular</td></tr>
+              <tr><td class="num">+6</td><td>Fantástico</td><td class="num">+0</td><td>Medíocre</td></tr>
+              <tr><td class="num">+5</td><td>Excepcional</td><td class="num">−1</td><td>Ruim</td></tr>
+              <tr><td class="num">+4</td><td>Ótimo</td><td class="num">−2</td><td>Terrível</td></tr>
+              <tr><td class="num">+3</td><td>Bom</td><td></td><td></td></tr>
+            </tbody>
+          </table></div>
+        </div></article>
+
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- bandeja de dados -->
+<div class="tray" id="tray">
+  <button type="button" class="btn fac pill" id="tray-pill" data-act="roll4">Rolar 4dF</button>
+  <div class="tray-card" id="tray-card" hidden>
+    <header class="hd"><h2 id="tr-title">4dF</h2><button type="button" class="x" data-act="close-tray" aria-label="Fechar bandeja" style="color:var(--on-fac);border-color:transparent">×</button></header>
+    <div class="dice" id="dice"><span class="fd" data-v="0"></span><span class="fd" data-v="0"></span><span class="fd" data-v="0"></span><span class="fd" data-v="0"></span></div>
+    <div class="res" aria-live="polite"><b id="tr-total">+0</b><span id="tr-ladder">Medíocre</span></div>
+    <p class="brk" id="tr-brk"></p>
+    <p class="tnote" id="tr-note" hidden></p>
+    <div class="tacts">
+      <button type="button" class="btn sm fac" data-act="invoke">Invocar +2</button>
+      <button type="button" class="btn sm ghost" data-act="reroll">Invocar e rerrolar</button>
+      <label><input type="checkbox" id="tr-free"> grátis</label>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="builder" hidden>
+  <div class="modal-card bcard" role="dialog" aria-modal="true" aria-labelledby="b-title">
+    <header class="hd"><h2 id="b-title">Criador de façanha</h2><button type="button" class="x" data-act="close-builder" aria-label="Fechar criador" style="color:var(--on-fac);border-color:transparent">×</button></header>
+    <div class="btypes" id="btypes" role="group" aria-label="Tipo de façanha"></div>
+    <div class="bwho"><span class="lbl">Para</span><div class="seg" role="group" aria-label="Para quem é a façanha" id="bwho"><button type="button" data-bwho="pilot">Piloto</button><button type="button" data-bwho="ms">Máquina</button></div></div>
+    <div class="sentence" id="bsent"></div>
+    <div class="bchecks" id="bchecks" aria-live="polite"></div>
+    <div class="bfoot">
+      <label class="fld"><span>Nome da façanha</span><input id="bname" placeholder="Curto e com cara do personagem"></label>
+      <button type="button" class="btn fac" data-act="b-add" id="b-add">Adicionar à ficha</button>
+      <div class="row">
+        <label class="chkbox" id="bnt-wrap"><input type="checkbox" id="bnt"> Façanha Newtype (só funciona com aspecto NT)</label>
+        <button type="button" class="btn sm ghost" data-act="b-example">Ver um exemplo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+<div class="modal" id="modal" hidden>
+  <div class="modal-card">
+    <header class="hd"><h2 id="modal-t">Texto</h2><button type="button" class="x" data-act="close-modal" aria-label="Fechar" style="color:var(--on-fac);border-color:transparent">×</button></header>
+    <p class="hint" id="modal-h" style="margin:0 0 8px"></p>
+    <textarea id="modal-txt" readonly></textarea>
+  </div>
+</div>
+
+<!-- equipment bundle start -->
+<style>
+/* Equipment UI is scoped independently of Foundry's global form rules. */
+.fg-equipment{color:var(--ink);font:14px/1.5 var(--f-body,Arial,sans-serif);margin:18px 0;min-width:0}
+.fg-equipment *{box-sizing:border-box}.fg-equipment h3{font:700 19px var(--f-head,Arial,sans-serif);margin:0 0 14px}
+.eq-load{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 16px;padding:12px;border-left:4px solid var(--fac);background:var(--plate,#e4e5e0)}
+.eq-load b{font:800 28px var(--f-head,Arial,sans-serif);margin-right:12px}.eq-load small{font-size:14px;font-weight:400}.eq-load span{font-size:12px;color:var(--ink-2)}
+.eq-slots,.eq-uses{display:flex;gap:4px;align-items:center;flex-wrap:wrap}.eq-slots i,.eq-uses i{width:13px;height:13px;border:1px solid var(--line);display:inline-block}.eq-slots .on,.eq-uses .on{background:var(--fac);border-color:var(--fac)}.eq-slots .over{background:var(--red-ink,#ad342b)}.eq-warning{border-color:var(--red-ink,#ad342b)}
+.eq-help,.eq-card small{font-size:12px;color:var(--ink-2);line-height:1.5}.eq-help{margin:10px 0 16px}.eq-alert{color:var(--red-ink,#b44536);font-weight:600;font-size:12px}
+.eq-controls{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.eq-add{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px;margin:16px 0}
+.fg-equipment select,.fg-equipment input,.fg-equipment textarea{width:100%;min-width:0;max-width:100%;height:auto;min-height:34px;border:1px solid var(--line);background:var(--armor,#f2f1ec);color:var(--ink);font:inherit;padding:6px 8px;border-radius:2px}.fg-equipment textarea{resize:vertical}
+.eq-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:10px 0}.eq-fields label{display:grid;gap:4px;align-content:start;min-width:0}.eq-fields label>span{font-size:11px;line-height:1.35;color:var(--ink-2)}.eq-full{grid-column:1/-1}
+.eq-editor-item{border-top:1px solid var(--line);padding:12px 0}.eq-editor-item summary{cursor:pointer;list-style:disclosure-closed}.eq-editor-item[open] summary{list-style:disclosure-open}.eq-editor-item summary b{display:inline;font:700 15px var(--f-head,Arial,sans-serif)}.eq-editor-item summary span{display:block;color:var(--ink-2);font-size:12px;margin:4px 0 0 14px}
+.eq-target{border-bottom:1px solid var(--line);margin-bottom:16px;padding:6px 0 12px}.eq-target summary{cursor:pointer;font-size:12px;color:var(--ink-2)}
+.eq-cards{display:grid;gap:12px}.eq-card{border:1px solid var(--line);border-left:3px solid var(--fac);padding:12px;min-width:0}.eq-card header{display:flex;justify-content:space-between;gap:12px;align-items:start}.eq-card header b{font:700 17px var(--f-head,Arial,sans-serif);overflow-wrap:anywhere}.eq-card header strong{font:700 19px var(--f-head,Arial,sans-serif);color:var(--fac-ink);white-space:nowrap}.eq-card p{margin:8px 0;font-size:13px;overflow-wrap:anywhere}.eq-muted{border-left-color:var(--line)}.eq-uses span{font-size:11px;margin-left:6px}.fg-equipment .btn{width:auto;white-space:normal;height:auto;min-height:30px;line-height:1.3}.fg-equipment button:disabled{opacity:.5;cursor:not-allowed}
+.eq-result{position:fixed;z-index:10000;bottom:18px;left:18px;width:min(370px,calc(100vw - 36px));max-height:60vh;overflow:auto;background:var(--armor,#f2f1ec);border:1px solid var(--line);box-shadow:0 8px 35px #0005;padding:18px;margin:0}.eq-result>button{float:right}.eq-result h3{margin-right:65px}.eq-result output{display:block;font-weight:700;font-size:18px;color:var(--fac-ink);padding:8px 0}.eq-result[hidden]{display:none!important}
+.eq-manual section{margin:24px 0}.eq-manual table{width:100%;border-collapse:collapse;font-size:13px}.eq-manual th,.eq-manual td{padding:8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}.eq-manual th{font-weight:700}.eq-manual .eq-table{overflow:auto}.eq-manual a{color:var(--fac)}
+@media(max-width:560px){.eq-add{grid-template-columns:1fr 1fr}.eq-add select{grid-column:1/-1}.eq-load{align-items:start}.eq-load span{display:block}.eq-result{left:8px;bottom:8px;width:calc(100vw - 16px)}}
+@media(prefers-reduced-motion:no-preference){.eq-card{animation:eq-enter .18s ease-out}@keyframes eq-enter{from{opacity:.6;transform:translateY(3px)}to{opacity:1;transform:none}}}
+
+</style>
+<script>
+/* Shared equipment rules and interface. Also bundled into the standalone sheet. */
+(() => {
+  'use strict';
+  const clone = x => JSON.parse(JSON.stringify(x));
+  const esc = x => String(x ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const num = (v, lo = 0, hi = 99) => Math.min(hi, Math.max(lo, Number.isFinite(+v) ? +v : lo));
+  const uid = () => globalThis.crypto?.randomUUID?.() || `gear-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const weapon = (id,n,w,r,load,note,extra={}) => ({id,n,kind:'weapon',sk:'Atirar',w,r:String(r),load,note,damage:'ballistic',action:'Atacar',...extra});
+  const tool = (id,n,sk,note,extra={}) => ({id,n,kind:'tool',sk,load:1,note,action:'Criar vantagem',...extra});
+  const CATALOG = {
+    pilot:[
+      weapon('pistol','Pistola',1,1,1,'Compacta. Requer munição.',{ammo:'pistol'}),
+      weapon('knife','Faca de combate',1,0,1,'Contato; pequena e útil em espaços apertados.',{sk:'Lutar',damage:'physical'}),
+      weapon('smg','Submetralhadora',1,1,2,'Pode criar vantagem de supressão; não concede ataque extra.',{ammo:'smg'}),
+      weapon('rifle','Rifle de assalto',2,2,2,'Ostensivo e barulhento; permite criar vantagem de supressão.',{ammo:'rifle'}),
+      weapon('shotgun','Espingarda',2,0,2,'Mesma zona. Não atinge vários alvos automaticamente.',{ammo:'shotgun'}),
+      weapon('sniper','Rifle de precisão',2,3,2,'Exige linha de tiro; preparar a posição cria vantagem.',{ammo:'sniper'}),
+      weapon('grenade','Granadas de fragmentação (2)',2,1,1,'Um alvo ou vantagem na área; terceiros podem estar em risco.',{damage:'fragment',maxUses:2,uses:2}),
+      weapon('antims','Lançador antiblindado anti-MS',2,2,3,'Munição especializada; ameaça escala 2. Operador continua escala 0. Um foguete incluído.',{threat:2,maxUses:1,uses:1,damage:'physical'}),
+      tool('smoke','Granadas de fumaça (2)','Atirar','Cria cortina de fumaça; não causa dano.',{maxUses:2,uses:2}),
+      tool('mines','Minas (2)','Ofícios','Defina gatilho, alvo e potência ao instalar. Furtividade para ocultar; não causam dano automático.',{maxUses:2,uses:2}),
+      tool('medkit','Kit médico','Conhecimentos','Estabiliza e inicia recuperação. Não apaga consequências.',{action:'Superar'}),
+      tool('tools','Ferramentas de campo','Ofícios','Permitem reparos acessíveis; não substituem oficina.',{action:'Superar'}),
+      tool('climb','Equipamento de escalada','Atletismo','Permite ancoragens e rotas seguras.'),
+      tool('sensor','Binóculos / sensor portátil','Percepção','Permite observação distante; respeite visibilidade e interferência.'),
+      tool('terminal','Terminal eletrônico','Ofícios','Diagnóstico e circuitos. Use Roubo para burlar segurança.'),
+      tool('radio','Rádio','Comunicação','Comunicação normal sem rolar; teste apenas com oposição.',{load:0}),
+      tool('laser','Comunicador laser','Ofícios','Requer linha de visada e alinhamento; alternativa ao rádio sob Minovsky.'),
+      tool('suit','Traje de piloto','Vigor','Proteção ambiental compatível, inclusive vácuo se pressurizado. Não é armadura.',{load:0}),
+      {id:'vest',n:'Colete balístico',kind:'armor',load:1,armor:1,protection:'ballistic',note:'Balas e fragmentos de escala pessoal; somente regiões protegidas.'},
+      {id:'shield',n:'Escudo portátil',kind:'shield',load:1,stunt:'escudo',note:'Absorção de 2 exige uma façanha Escudo. Sem ela, só permite criar vantagem.'},
+      {id:'ammo-rifle',n:'Reserva de munição — rifle',kind:'ammo',load:1,ammo:'rifle',maxUses:1,uses:1,note:'Reabastece um rifle de assalto esgotado compatível.'},
+      tool('transport','Transporte / caminhão','Pilotagem','Leva passageiros e carga armazenada. Rolar apenas sob risco.',{load:0,location:'stored',action:'Superar'})
+    ],
+    ms:[
+      weapon('zaku-mg','Metralhadora de Zaku',1,2,2,'Supressão por criar vantagem; não soma dano de rajadas.',{ammo:'zaku-mg'}),
+      weapon('zaku-bazooka','Zaku Bazooka',2,2,2,'Munição volumosa. Pode ameaçar blindados ou demolir obstáculos.',{ammo:'zaku-bazooka',damage:'physical'}),
+      weapon('heat-hawk','Heat Hawk',1,0,1,'Machado térmico; exige contato.',{sk:'Lutar',damage:'physical'}),
+      weapon('beam-rifle','Beam rifle',2,2,2,'Requer alimentação compatível. Recarga em infraestrutura adequada.',{damage:'beam',ammo:'beam',compat:'beam'}),
+      weapon('naginata','Beam naginata',2,0,1,'Arma de contato. Duas lâminas não concedem dois ataques.',{sk:'Lutar',damage:'beam',compat:'beam'}),
+      {id:'shoulder-shield',n:'Escudo fixo do ombro',kind:'shield',load:0,stunt:'escudo',note:'Integrado; absorção exige a façanha Escudo e posição para interceptar.'},
+      {id:'gelgoog-shield',n:'Escudo de Gelgoog',kind:'shield',load:1,stunt:'escudo',note:'Portátil; respeite mãos e suportes. Absorção exige a façanha Escudo.'},
+      {id:'zaku-ammo',n:'Reserva de munição — metralhadora de Zaku',kind:'ammo',load:1,ammo:'zaku-mg',maxUses:1,uses:1,note:'Uma reposição da metralhadora; não serve para a bazuca.'},
+      {id:'bazooka-ammo',n:'Reserva de munição — Zaku Bazooka',kind:'ammo',load:1,ammo:'zaku-bazooka',maxUses:1,uses:1,note:'Uma reposição da bazuca.'},
+      tool('recon','Kit de reconhecimento','Percepção','Permite observação e registro. Não concede bônus automático de Sensores.'),
+      tool('repair','Kit de reparo de campo','Ofícios','Remendo +4: funcionamento até o fim da cena. Não apaga avaria.',{action:'Superar'}),
+      {id:'plating',n:'Blindagem reforçada balística',kind:'armor',load:1,armor:1,protection:'ballistic',stunt:'gear-plating',note:'Armadura:1 contra balas/fragmentos; exige uma façanha de sistema. Feixes passam.'},
+      tool('thruster','Propulsores modificados','Pilotagem','+2 para superar em perseguições e fugas em espaço aberto; exige a façanha correspondente.',{load:0,stunt:'prop',action:'Superar'})
+    ]
+  };
+  const KITS = {zaku:{name:'MS-06F Zaku II',ids:['zaku-mg','zaku-bazooka','heat-hawk','zaku-ammo','shoulder-shield']},gelgoog:{name:'MS-14A Gelgoog',ids:['beam-rifle','naginata','gelgoog-shield','recon','repair']}};
+  const STUNTS = {
+    escudo:{id:'escudo',n:'Escudo',d:'Uma vaga extra absorve 2 tensões de um ataque físico interceptável. Usou, quebrou; exige reparo ou substituição entre cenas.'},
+    'gear-plating':{id:'gear-plating',n:'Blindagem reforçada balística',d:'Com a blindagem equipada, Armadura:1 contra balas e fragmentos de escala igual ou inferior. Feixes passam. Não acumula com outras armaduras.'},
+    prop:{id:'prop',n:'Propulsores de alto desempenho',d:'+2 em Pilotagem para superar em perseguições e fugas em espaço aberto.'}
+  };
+  function normalizeItem(raw,kind='tool',who='pilot') {
+    const x = {...raw};
+    if(!/^[a-zA-Z0-9_-]{1,80}$/.test(x.uid||'')) x.uid=uid(); x.kind = ['weapon','tool','armor','shield','ammo','supply'].includes(x.kind)?x.kind:kind;
+    x.n = String(x.n ?? 'Equipamento'); x.note = String(x.note ?? '');
+    x.load = num(x.load ?? (x.kind==='weapon'? (x.sk==='Lutar'?1:2):1),0,8);
+    x.w = num(x.w,0,2); x.r = String(num(x.r,0,3)); x.sk ||= x.kind==='weapon'?'Atirar':'Ofícios';
+    x.action = ['Atacar','Criar vantagem','Superar'].includes(x.action)?x.action:x.kind==='weapon'?'Atacar':'Criar vantagem';
+    x.location = x.location==='stored'?'stored':'carried';
+    x.status = ['ready','damaged','broken'].includes(x.status)?x.status:'ready';
+    x.dry = !!x.dry;
+    x.threat = x.threat==null || x.threat===''?null:num(x.threat,0,3);
+    x.damage ||= x.sk==='Lutar'?'physical':'ballistic';
+    x.armor = num(x.armor,0,2); x.protection ||= 'ballistic';
+    x.maxUses = x.maxUses==null?null:num(x.maxUses,1,99);
+    x.uses = x.maxUses==null?null:num(x.uses??x.maxUses,0,x.maxUses);
+    return x;
+  }
+  function migrate(s) {
+    for(const who of ['pilot','ms']) {
+      const p=s[who]; if(!p) continue;
+      p.weapons = (Array.isArray(p.weapons)?p.weapons:[]).filter(x=>x&&typeof x==='object').map(x=>normalizeItem(x,'weapon',who));
+      p.equipment = (Array.isArray(p.equipment)?p.equipment:[]).filter(x=>x&&typeof x==='object').map(x=>normalizeItem(x,'tool',who));
+      p.shieldSpent = !!p.shieldSpent;
+      p.stunts = (Array.isArray(p.stunts)?p.stunts:[]).filter(x=>x&&typeof x==='object');
+      for(const stunt of p.stunts) if(!stunt.id) stunt.id=uid();
+    }
+    s.equipmentVersion = 1;
+    s.ms.model ||= 'custom';
+    return s;
+  }
+  const all = (s,w) => [...(s[w].weapons||[]),...(s[w].equipment||[])];
+  const get = (s,w,id) => all(s,w).find(x=>x.uid===id);
+  const scale = (s,w) => w==='pilot'?0:({ma:3,nave:3}[s.ms.cls]||2);
+  const threat = (s,w,x) => x.threat??scale(s,w);
+  const load = (s,w) => all(s,w).filter(x=>x.location==='carried').reduce((v,x)=>v+x.load,0);
+  const active = x => x.location==='carried' && x.status!=='broken' && !x.dry && x.uses!==0;
+  function blocked(s,w,x) {
+    if(!active(x)) return x.location==='stored'?'Armazenado':x.status==='broken'?'Inutilizado':x.dry?'Sem munição / energia':'Sem usos';
+    if(w==='ms' && s.ms.model==='zaku' && x.compat==='beam' && !s.ms.beamConversion) return 'Zaku requer conversão para armas de feixe';
+    if(w==='ms' && x.kind==='weapon' && x.sk==='Vontade' && (!s.pilot.aspects.some(a=>a.nt)||!s.ms.stunts.some(a=>a.id==='psy'))) return 'Requer Newtype e Psicomunicador';
+    if(x.stunt && !s[w].stunts.some(t=>t.id===x.stunt) && x.kind!=='shield') return 'Requer façanha vinculada';
+    return '';
+  }
+  function add(s,w,source) {
+    const x=normalizeItem({...clone(source),uid:uid()},source.kind,w);
+    s[w][x.kind==='weapon'?'weapons':'equipment'].push(x); return x;
+  }
+  function applyKit(s,key) {
+    const kit=KITS[key]; if(!kit) throw Error('Kit inexistente');
+    if(['ma','nave'].includes(s.ms.cls)) throw Error('Escolha uma classe de mobile suit antes de aplicar este kit.');
+    s.ms.weapons=[]; s.ms.equipment=[]; s.ms.model=key; s.ms.beamConversion=false;
+    if(!s.ms.name.trim()) s.ms.name=kit.name;
+    for(const id of kit.ids) add(s,'ms',CATALOG.ms.find(x=>x.id===id));
+    // Never reset stress, shield state, consequences, pilot, aspects, or custom stunts.
+    const cap=s.ms.cls==='proto'?3:2;
+    if(!s.ms.stunts.some(x=>x.id==='escudo') && s.ms.stunts.length<cap) s.ms.stunts.push(clone(STUNTS.escudo));
+  }
+  function armor(s,w,damage,incomingScale) {
+    if(incomingScale>scale(s,w)) return 0;
+    const compatible = p => p==='all'||p===damage||(p==='ballistic'&&damage==='fragment')||(p==='physical'&&damage!=='beam');
+    const values=all(s,w).filter(x=>x.kind==='armor' && active(x) && !blocked(s,w,x) && compatible(x.protection)).map(x=>x.armor);
+    if(w==='ms' && s.ms.stunts.some(x=>x.id==='luna') && damage!=='beam') values.push(1);
+    return Math.max(0,...values);
+  }
+  function resolve(total,defense,weaponValue,armorValue,scaleDifference=0) {
+    const d=num(defense,-99,99)+Math.max(0,-scaleDifference), margin=total-d;
+    if(margin<0) return {text:'Errou',stress:0,margin,defense:d};
+    const stress=Math.max(0,margin+weaponValue+Math.max(0,scaleDifference)*2-armorValue);
+    return {text:stress?`${stress} tensões`:margin===0?'Impulso; sem estresse':'Sem estresse',stress,margin,defense:d};
+  }
+  globalThis.FGEquipment={CATALOG,KITS,STUNTS,clone,esc,num,normalizeItem,migrate,all,get,scale,threat,load,active,blocked,add,applyKit,armor,resolve};
+})();
+
+</script>
+<script>
+(() => {
+  'use strict';
+  const G=globalThis.FGEquipment, {esc,clone,num}=G;
+  const TYPES={weapon:'Arma',tool:'Ferramenta',armor:'Proteção',shield:'Escudo',ammo:'Munição',supply:'Suprimento'};
+  const STATES={ready:'Operante',damaged:'Comprometido',broken:'Inutilizado'};
+  const SKILLS=['Atirar','Atletismo','Comunicação','Conhecimentos','Contatos','Empatia','Enganar','Furtividade','Investigação','Lutar','Ofícios','Percepção','Pilotagem','Provocar','Recursos','Roubo','Vigor','Vontade'];
+  const options=(xs,v)=>xs.map(([k,n])=>`<option value="${esc(k)}"${String(k)===String(v)?' selected':''}>${esc(n)}</option>`).join('');
+  class EquipmentUI {
+    constructor(host) {
+      this.h=host; this.root=host.root; this.targets={pilot:{range:0,scale:0},ms:{range:0}}; this.result=null; this.busy=false;
+      G.migrate(this.h.state());
+      this.root.addEventListener('click',e=>this.click(e));
+      this.root.addEventListener('change',e=>this.change(e));
+      this.root.addEventListener('input',e=>{if(e.target.matches('[data-eq-defense],[data-eq-arm]')) this.paintResult();});
+    }
+    items(w){return G.all(this.h.state(),w);}
+    refresh(){this.h.render();this.render();this.h.save();}
+    loadHTML(w){
+      const n=G.load(this.h.state(),w), warn=n>8?'Exige transporte':n>6?'Sobrecarregado':'Carga preparada';
+      return `<div class="eq-load ${n>6?'eq-warning':''}"><div><b>${n}<small> / 6</small></b><span>${warn}</span></div><div class="eq-slots" aria-label="Carga ${n} de 6">${Array.from({length:Math.max(6,Math.min(9,Math.ceil(n)))},(_,i)=>`<i class="${i<n?'on':''} ${i>=6?'over':''}"></i>`).join('')}</div></div>`;
+    }
+    field(w,x,key,label,type='text',values=null){
+      const attrs=`data-eq-field="${key}" data-eq-who="${w}" data-eq-id="${esc(x.uid)}"`;
+      return `<label><span>${label}</span>${values?`<select ${attrs}>${options(values,x[key]??'')}</select>`:`<input ${attrs} type="${type}" value="${esc(x[key]??'')}" ${type==='number'?'min="0" max="99" step="1"':''}>`}</label>`;
+    }
+    editor(w){
+      const s=this.h.state(), cat=G.CATALOG[w];
+      const row=x=>`<details class="eq-editor-item"><summary><b>${esc(x.n)}</b><span>${TYPES[x.kind]} · ${x.load} carga · ${STATES[x.status]}${x.location==='stored'?' · Armazenado':''}</span></summary><div class="eq-fields">
+        ${this.field(w,x,'n','Nome')}${this.field(w,x,'kind','Categoria','',Object.entries(TYPES))}${this.field(w,x,'load','Carga','number')}
+        ${this.field(w,x,'location','Onde está','',[['carried','Com você / na máquina'],['stored','Armazenado / transporte']])}${this.field(w,x,'status','Estado','',Object.entries(STATES))}
+        ${this.field(w,x,'sk','Perícia','',SKILLS.map(n=>[n,n]))}${this.field(w,x,'action','Ação','',[['Atacar','Atacar'],['Criar vantagem','Criar vantagem'],['Superar','Superar']])}
+        ${x.kind==='weapon'?`${this.field(w,x,'w','Arma','number')}${this.field(w,x,'r','Alcance','',[[0,'Mesma zona / contato'],[1,'1 zona'],[2,'2 zonas'],[3,'3 zonas']])}${this.field(w,x,'damage','Tipo de dano','',[['ballistic','Balas'],['fragment','Fragmentos'],['physical','Físico / explosivo'],['beam','Feixe']])}${this.field(w,x,'threat','Escala de ameaça','',[['','Da plataforma'],[0,'0 · Pessoa'],[1,'1 · Veículo'],[2,'2 · MS'],[3,'3 · Nave / MA']])}${this.field(w,x,'compat','Compatibilidade','',[['','Normal'],['beam','Requer suporte a feixes']])}`:''}
+        ${x.kind==='armor'?`${this.field(w,x,'armor','Armadura','number')}${this.field(w,x,'protection','Protege contra','',[['ballistic','Balas e fragmentos'],['physical','Físico, exceto feixe'],['beam','Feixe'],['all','Todos (especial)']])}`:''}
+        ${this.field(w,x,'maxUses','Usos máximos (vazio = sem contagem)','number')}${this.field(w,x,'uses','Usos restantes','number')}
+        ${this.field(w,x,'ammo','Família de munição')}${this.field(w,x,'stunt','Façanha necessária','',[['','Nenhuma'],...s[w].stunts.map(t=>[t.id,t.n||'Façanha sem nome']),...Object.values(G.STUNTS).filter(t=>!s[w].stunts.some(a=>a.id===t.id)).map(t=>[t.id,`${t.n} · reservar vaga`]),...(x.stunt&&!s[w].stunts.some(t=>t.id===x.stunt)&&!G.STUNTS[x.stunt]?[[x.stunt,'Vínculo ausente · escolha uma façanha']]:[])])}
+        <label class="eq-full"><span>Função e limitações</span><textarea data-eq-field="note" data-eq-who="${w}" data-eq-id="${esc(x.uid)}" rows="2">${esc(x.note)}</textarea></label>
+        <div class="eq-full eq-controls">${x.stunt?`<button type="button" class="btn sm" data-eq-act="stunt" data-eq-who="${w}" data-eq-id="${x.uid}">Vincular / reservar façanha</button>`:''}<button type="button" class="btn sm ghost" data-eq-act="delete" data-eq-who="${w}" data-eq-id="${x.uid}">Remover item</button></div>
+      </div></details>`;
+      return `<div class="fg-equipment" data-eq-owner="${w}"><h3>${w==='pilot'?'Equipamentos pessoais':'Equipamentos da máquina'}</h3>${this.loadHTML(w)}
+        ${w==='ms'?`<div class="eq-fields"><label><span>Modelo / compatibilidade</span><select data-eq-model>${options([['custom','Outro modelo'],['zaku','MS-06F Zaku II'],['gelgoog','MS-14A Gelgoog']],s.ms.model)}</select></label><label><span>Conversão de feixes instalada</span><select data-eq-conversion>${options([['no','Não'],['yes','Sim — projeto aprovado']],s.ms.beamConversion?'yes':'no')}</select></label></div><div class="eq-controls"><button type="button" class="btn sm" data-eq-act="kit" data-eq-kit="zaku">Kit Zaku II</button><button type="button" class="btn sm" data-eq-act="kit" data-eq-kit="gelgoog">Kit Gelgoog</button></div><p class="eq-help">Troca somente a carga da máquina. Preserva sistemas, avarias e piloto. Escudo reserva uma façanha se houver vaga.</p>`:''}
+        <div class="eq-add"><select data-eq-catalog="${w}" aria-label="Catálogo ${w==='pilot'?'pessoal':'da máquina'}">${options(cat.map(x=>[x.id,`${TYPES[x.kind]} · ${x.n}`]),cat[0].id)}</select><button type="button" class="btn sm" data-eq-act="add" data-eq-who="${w}">Adicionar</button><button type="button" class="btn sm ghost" data-eq-act="blank" data-eq-who="${w}">Criar item</button></div>
+        ${this.items(w).map(row).join('')||'<p class="eq-help">Escolha os equipamentos para esta missão.</p>'}
+        <button type="button" class="btn sm ghost" data-eq-act="service" data-eq-who="${w}">Reabastecer entre missões</button><p class="eq-help">Exige estoque e infraestrutura. Repõe usos, munição e escudo; não conserta avarias ou itens inutilizados.</p></div>`;
+    }
+    target(w){return {...this.targets[w],scale:w==='ms'?this.h.state().opp:this.targets.pilot.scale};}
+    play(w){
+      const s=this.h.state(), target=this.target(w), can=this.h.editable(), shield=s[w].stunts.some(x=>x.id==='escudo'), spent=w==='ms'?!!s.ms.dmg.sh.t:s.pilot.shieldSpent;
+      const protection=['ballistic','fragment','physical','beam'].map((t,i)=>`${['balas','fragmentos','físico','feixe'][i]} ${G.armor(s,w,t,G.scale(s,w))}`).join(' · ');
+      return `<section class="fg-equipment eq-play" data-eq-owner="${w}"><h3>${w==='pilot'?'Equipamentos pessoais':'Carga da máquina'}</h3>${w==='ms'&&G.KITS[s.ms.model]?`<p class="eq-help">Modelo: ${G.KITS[s.ms.model].name}</p>`:''}${this.loadHTML(w)}<p class="eq-help">Proteção até escala ${G.scale(s,w)}: ${protection}. Confirme região atingida e limitações.</p>
+        <details class="eq-target"><summary>Alvo: escala ${target.scale} · distância ${target.range} zona(s)</summary><div class="eq-fields"><label><span>Escala do alvo</span><select data-eq-target="scale" data-eq-who="${w}">${options([[0,'Pessoa'],[1,'Veículo'],[2,'Mobile suit'],[3,'Nave / mobile armor']],target.scale)}</select></label><label><span>Distância em zonas</span><select data-eq-target="range" data-eq-who="${w}">${options([[0,'Mesma zona'],[1,'1 zona'],[2,'2 zonas'],[3,'3 zonas']],target.range)}</select></label></div><p class="eq-help">Mesma zona não garante contato ou linha de tiro. Confirme a posição na ficção.</p></details>
+        <div class="eq-cards">${this.items(w).map(x=>{
+          const reason=G.blocked(s,w,x), attack=x.kind==='weapon';
+          const out=attack && +x.r<target.range;
+          return `<article class="eq-card ${reason?'eq-muted':''}"><header><b>${esc(x.n)}</b><strong>${attack?`A:${x.w}`:x.kind==='armor'?`ARM:${x.armor}`:x.load===0?'FIXO':`${x.load} ◇`}</strong></header><small>${TYPES[x.kind]} · ${x.location==='stored'?'Armazenado':`${x.load} carga`} · ${STATES[x.status]}${attack?` · ${esc(x.sk)} · alcance ${x.r} · ameaça ${G.threat(s,w,x)}`:''}</small><p>${esc(x.note)}</p>
+            ${x.maxUses!=null?`<div class="eq-uses" aria-label="${x.uses} de ${x.maxUses} usos">${Array.from({length:Math.min(12,x.maxUses)},(_,i)=>`<i class="${i<x.uses?'on':''}"></i>`).join('')}<span>${x.uses}/${x.maxUses}</span></div>`:''}
+            ${reason||out?`<p class="eq-alert">${esc(reason||'Fora de alcance')}</p>`:''}
+            ${can?`<div class="eq-controls">${['weapon','tool','supply'].includes(x.kind)?`<button type="button" class="btn sm" data-eq-act="use" data-eq-who="${w}" data-eq-id="${x.uid}" ${reason||out?'disabled':''}>${attack?'Atacar':x.maxUses!=null?'Usar e rolar':x.action}</button>`:''}
+            ${x.kind==='ammo'?`<select data-eq-reload-target="${x.uid}" aria-label="Arma para recarregar">${options(s[w].weapons.filter(t=>t.ammo&&t.ammo===x.ammo&&t.dry&&t.location==='carried').map(t=>[t.uid,t.n]),'')}</select><button type="button" class="btn sm" data-eq-act="reload" data-eq-who="${w}" data-eq-id="${x.uid}" ${reason?'disabled':''}>Recarregar</button>`:''}
+            ${attack&&x.ammo&&!x.dry?`<button type="button" class="btn sm ghost" data-eq-act="dry" data-eq-who="${w}" data-eq-id="${x.uid}">Marcar esgotada</button>`:''}
+            ${x.kind==='shield'?`<button type="button" class="btn sm" data-eq-act="shield" data-eq-who="${w}" data-eq-id="${x.uid}" ${reason||!shield||spent?'disabled':''}>${spent?'Escudo destruído':shield?'Interceptar 2 tensões':'Exige façanha Escudo'}</button>`:''}</div>`:''}</article>`;
+        }).join('')||'<p class="eq-help">Sem equipamentos registrados.</p>'}</div>
+        <p class="eq-help">Armadura: maior proteção aplicável, sem somar peças. As limitações e os benefícios condicionais de façanhas são adjudicados pela mesa.</p></section>`;
+    }
+    render(){
+      G.migrate(this.h.state());
+      for(const w of ['pilot','ms']) {
+        for(const el of this.root.querySelectorAll(`[data-eq-editor="${w}"]`)) el.innerHTML=this.h.editable()?this.editor(w):'';
+        for(const el of this.root.querySelectorAll(`[data-eq-play="${w}"]`)) el.innerHTML=this.play(w);
+      }
+      if(!this.root.querySelector('[data-eq-result]')) {
+        const box=document.createElement('aside');box.className='fg-equipment eq-result';box.dataset.eqResult='';box.hidden=true;
+        box.innerHTML='<button type="button" class="btn sm ghost" data-eq-act="close-result" aria-label="Fechar resultado">Fechar</button><h3 data-eq-title></h3><p data-eq-total></p><div class="eq-fields"><label><span>Defesa rolada, sem escala</span><input type="number" data-eq-defense value="0" min="-99" max="99"></label><label><span>Armadura aplicável do alvo</span><input type="number" data-eq-arm value="0" min="0" max="2"></label></div><output data-eq-output></output><p class="eq-help">Informe a defesa para calcular. Não altera estresse do alvo. Armadura depende do tipo de ataque, escala e região protegida.</p>';
+        (this.root===document?document.body:this.root).appendChild(box);
+      }
+      this.paintResult();
+    }
+    actions(w){
+      const s=this.h.state();
+      return s[w].weapons.map(x=>({kind:'Atacar',n:x.n,w:x.w,gear:x.uid,who:w,nt:x.sk==='Vontade',warn:!!G.blocked(s,w,x),parts:[{l:x.sk,v:this.h.rating(x.sk)},...(w==='ms'?[{l:x.sk==='Lutar'?'Combate':'Mira',v:this.h.eff(x.sk==='Lutar'?'comb':'mira')}]:[])],note:x.note}));
+    }
+    async use(w,id){
+      if(!this.h.editable()||this.busy) return;
+      const s=this.h.state(),x=G.get(s,w,id);if(!x)return;
+      const reason=G.blocked(s,w,x);if(reason)return this.h.notify(reason);
+      const target=this.target(w), attack=x.kind==='weapon', d=G.threat(s,w,x)-target.scale;
+      if(attack && +x.r<target.range)return this.h.notify('Fora de alcance.');
+      // Small arms cannot damage an intact MS hull. Target vulnerable parts through a narrated advantage.
+      if(attack && target.scale>=2 && G.threat(s,w,x)===0)return this.h.notify('Esta arma pessoal não danifica casco intacto de MS. Use uma vantagem para sabotagem ou uma arma anti-MS.');
+      const parts=[{l:x.sk,v:this.h.rating(x.sk)}];
+      if(attack&&w==='ms') parts.push({l:x.sk==='Lutar'?'Combate':'Mira',v:this.h.eff(x.sk==='Lutar'?'comb':'mira')});
+      if(attack&&d>0)parts.push({l:'Escala de ameaça',v:d});
+      const note=attack?`${x.note} Arma:${x.w}; alcance ${x.r}; ${x.damage}. Ao empatar/superar a defesa: margem + ${x.w+Math.max(0,d)*2} − Armadura aplicável.${d<0?` O alvo soma +${-d} de escala à defesa.`:''}`:`${x.action}: ${x.note} Benefícios condicionais e dificuldade são definidos pela mesa.`;
+      this.busy=true;
+      try {
+        const total=await this.h.roll(x.n,parts,note);
+        const current=G.get(this.h.state(),w,id);
+        if(current?.uses!=null)current.uses=Math.max(0,current.uses-1);
+        this.result=attack?{n:x.n,total,w:x.w,d}:null;
+        this.refresh();
+        const box=this.root.querySelector('[data-eq-result]');
+        if(attack){box.querySelector('[data-eq-defense]').value='0';box.querySelector('[data-eq-arm]').value='0';this.paintResult();}
+      } catch(e){this.h.notify('A rolagem não foi concluída; nenhum uso foi gasto. '+e.message);}
+      finally {this.busy=false;}
+    }
+    paintResult(total){
+      const box=this.root.querySelector('[data-eq-result]');if(!box)return;
+      box.hidden=!this.result;if(!this.result)return;
+      if(Number.isFinite(total))this.result.total=total;
+      const r=this.result,out=G.resolve(r.total,num(box.querySelector('[data-eq-defense]').value,-99,99),r.w,num(box.querySelector('[data-eq-arm]').value,0,2),r.d);
+      box.querySelector('[data-eq-title]').textContent=r.n;
+      box.querySelector('[data-eq-total]').textContent=`Ataque ${r.total} · Arma:${r.w} · bônus de dano da escala ${Math.max(0,r.d)*2}`;
+      box.querySelector('[data-eq-output]').textContent=`${out.text} · defesa efetiva ${out.defense}`;
+    }
+    resetResult(){this.result=null;this.paintResult();}
+    confirm(btn,label,fn){
+      if(btn.dataset.eqArmed){fn();return;}
+      const old=btn.textContent;btn.dataset.eqArmed='1';btn.textContent=label;
+      setTimeout(()=>{if(btn.isConnected){delete btn.dataset.eqArmed;btn.textContent=old;}},5000);
+    }
+    click(e){
+      const b=e.target.closest('[data-eq-act]');if(!b||!this.root.contains(b))return;
+      e.preventDefault(); const a=b.dataset.eqAct,w=b.dataset.eqWho,s=this.h.state(),id=b.dataset.eqId,x=w&&G.get(s,w,id);
+      if(a==='close-result'){this.resetResult();return;}
+      if(!this.h.editable())return;
+      if(a==='use'){this.use(w,id);return;}
+      if(['add','blank','delete','kit','stunt','service'].includes(a)&&this.h.mode()!=='edit')return;
+      if(a==='kit'){this.confirm(b,'Confirmar troca de carga',()=>{try{G.applyKit(s,b.dataset.eqKit);this.refresh();this.h.notify('Kit aplicado. Confira carga, compatibilidade e vagas de façanha.');}catch(err){this.h.notify(err.message);}});return;}
+      if(a==='service'){this.confirm(b,'Confirmar estoque e manutenção',()=>{for(const i of this.items(w)){if(i.maxUses!=null)i.uses=i.maxUses;i.dry=false;}s[w].shieldSpent=false;if(w==='ms')s.ms.dmg.sh={t:'',loc:''};this.refresh();});return;}
+      if(a==='add'){const pick=this.root.querySelector(`[data-eq-catalog="${w}"]`).value;G.add(s,w,G.CATALOG[w].find(i=>i.id===pick));}
+      if(a==='blank')G.add(s,w,{n:'Novo equipamento',kind:'tool',load:1,note:''});
+      if(a==='delete'&&x){s[w].weapons=s[w].weapons.filter(i=>i.uid!==id);s[w].equipment=s[w].equipment.filter(i=>i.uid!==id);}
+      if(a==='stunt'&&x){
+        if(s[w].stunts.some(t=>t.id===x.stunt))return this.h.notify('A façanha já ocupa uma vaga.');
+        const limit=w==='pilot'?5:s.ms.cls==='proto'?3:2;
+        if(s[w].stunts.length>=limit)return this.h.notify('Sem vaga disponível. Ajuste as façanhas antes de vincular.');
+        if(!G.STUNTS[x.stunt])return this.h.notify('Crie a façanha no criador e selecione seu nome neste item.');
+        s[w].stunts.push(clone(G.STUNTS[x.stunt]));
+      }
+      if(a==='dry'&&x)x.dry=true;
+      if(a==='reload'&&x){
+        const select=b.closest('.eq-card').querySelector('[data-eq-reload-target]'),t=G.get(s,w,select?.value);
+        if(!t||!t.dry||!x.ammo||t.ammo!==x.ammo||!G.active(x))return this.h.notify('Sem arma esgotada compatível ou reserva disponível.');
+        t.dry=false;if(x.uses!=null)x.uses--;this.h.notify('Arma recarregada. Sob fogo, isso gasta sua ação.');
+      }
+      if(a==='shield'&&x){
+        if(!G.active(x)||!s[w].stunts.some(t=>t.id==='escudo'))return;
+        if(w==='ms'){if(s.ms.dmg.sh.t)return;s.ms.dmg.sh.t='Escudo destruído';}else{if(s.pilot.shieldSpent)return;s.pilot.shieldSpent=true;}
+        this.h.notify('Escudo destruído: absorva 2 tensões se ele podia interceptar o ataque.');
+      }
+      this.refresh();
+    }
+    change(e){
+      const el=e.target,s=this.h.state();
+      if(el.dataset.eqTarget){const w=el.dataset.eqWho,k=el.dataset.eqTarget;if(w==='ms'&&k==='scale'){s.opp=num(el.value,0,3);}else this.targets[w][k]=num(el.value,0,3);this.h.render();this.render();if(this.h.editable())this.h.save();return;}
+      if(!this.h.editable()||this.h.mode()!=='edit')return;
+      if(el.hasAttribute('data-eq-model')){s.ms.model=el.value;this.refresh();return;}
+      if(el.hasAttribute('data-eq-conversion')){s.ms.beamConversion=el.value==='yes';this.refresh();return;}
+      const key=el.dataset.eqField,w=el.dataset.eqWho,x=w&&G.get(s,w,el.dataset.eqId);if(!key||!x)return;
+      const allowed=['n','kind','load','location','status','sk','action','w','r','damage','threat','compat','armor','protection','maxUses','uses','ammo','stunt','note'];
+      if(!allowed.includes(key))return;
+      x[key]=['load','w','armor','maxUses','uses','threat'].includes(key)?(el.value===''?null:+el.value):el.value;
+      Object.assign(x,G.normalizeItem(x,x.kind,w));
+      s[w].weapons=this.items(w).filter(i=>i.kind==='weapon');
+      s[w].equipment=[...s[w].equipment.filter(i=>i.uid!==x.uid),...(x.kind!=='weapon'?[x]:[])];
+      // Move changed categories without duplicating an entry.
+      const seen=new Set();s[w].weapons=s[w].weapons.filter(i=>!seen.has(i.uid)&&seen.add(i.uid));
+      this.refresh();
+      const detail=this.root.querySelector(`[data-eq-editor="${w}"] [data-eq-id="${x.uid}"]`)?.closest('details');if(detail)detail.open=true;
+    }
+  }
+  G.UI=EquipmentUI;
+})();
+
+</script>
+<script>
+(() => {
+  globalThis.FGEquipment.manual = `<article class="panel eq-manual" id="m-equipment" data-sec="m-equipment"><div class="in">
+  <header class="hd"><h2>Equipamentos e logística</h2><span class="kana">装備</span></header>
+  <p><b>Regras da casa · versão 1.4.0.</b> Valores, carga, kits e compatibilidade abaixo são desta adaptação, não estatísticas oficiais de Gundam. Armas/armaduras são extras opcionais do Fate Core. O julgamento de alcance real, cobertura, mãos livres, autorização e infraestrutura pertence à mesa.</p>
+  <section><h3>Preparar → usar → recuperar</h3><p>No modo <b>Editar</b>, adicione itens do catálogo, crie equipamentos, distribua a carga e aplique kits. No modo <b>Jogar</b>, leia as informações, role ataques e ações, gaste consumíveis e marque o escudo. Esgotar munição é um evento da história, não um efeito automático de uma rolagem ruim.</p><p>Uma rolagem de equipamento especial não soma automaticamente o bônus condicional da façanha: verifique a circunstância. Ferramentas permitem agir; não dão +2 por existir. Invocações da bandeja continuam gastando pontos de destino. Rerrolar não consome outra granada.</p></section>
+  <section><h3>1 · Objetos e façanhas</h3><p><b>Comum:</b> rádio, lanterna e ferramentas permitem ações. <b>Tático:</b> armas, proteção e consumíveis têm valores ou usos. <b>Especial:</b> benefícios extraordinários exigem uma façanha. Comprar uma arma comum não custa Recarga.</p><p>Uma melhoria pessoal ocupa façanha do piloto; uma melhoria da máquina ocupa façanha de sistema. O inventário permite vincular Escudo, blindagem balística e propulsores às façanhas correspondentes, respeitando vagas. Outros efeitos podem ser escritos no Criador de façanha. Retirar um item não apaga sua façanha nem devolve Recarga automaticamente.</p><p>Descrições como <i>Pesado e barulhento</i> orientam permissões e complicações; não geram invocações grátis no início de cada cena. Use criar vantagem, invocação ou forçar aspecto conforme a situação.</p></section>
+  <section><h3>2 · Carga e acesso</h3><p>Pessoa e MS têm <b>6 espaços de carga relativos à própria escala</b>. Acima de 6 e até 8, marque <i>Sobrecarregado</i>; acima de 8, distribua o excedente num transporte antes de agir com a carga. O medidor avisa, sem aplicar penalidade fixa. Itens armazenados não contam na carga equipada nem podem ser usados até serem recuperados.</p><div class="eq-table"><table><tr><th>Objeto</th><th>Carga</th></tr><tr><td>Pistola, faca, kit, Heat Hawk, naginata, colete, escudo portátil</td><td>1</td></tr><tr><td>Rifle, metralhadora ou bazuca de MS</td><td>2</td></tr><tr><td>Lançador pessoal anti-MS</td><td>3</td></tr><tr><td>Duas granadas, duas minas ou uma reserva compatível</td><td>1</td></tr><tr><td>Traje normal de piloto, comunicador, escudo fixo, sistemas integrados</td><td>0</td></tr></table></div><p>Um registro representa um objeto ou pacote; adicione outro registro para levar outra unidade. Pacote gasto continua no inventário até ser descartado no modo Editar. Respeite mãos e suportes: dois rifles não concedem duas ações. Sacar um item acessível faz parte da ação; recuperar equipamento guardado ou caído sob fogo gasta uma ação, com teste se houver risco.</p></section>
+  <section><h3>3 · Armas, alcance e dano</h3><p>Pessoa: <b>4dF + Atirar/Lutar</b>. MS: <b>4dF + Atirar + Mira</b> ou <b>4dF + Lutar + Combate</b>. Arma não aumenta acerto. Se empatar ou superar a defesa: <b>tensões = margem + Arma + bônus de dano da escala − Armadura aplicável</b>, mínimo zero. Abaixo da defesa, erra. No empate sem tensões, recebe um impulso.</p><p>O comparador recebe a defesa rolada <b>sem escala</b> e a armadura aplicável informadas por você. Acrescenta a defesa de escala do alvo maior; nunca marca estresse no ator adversário. O tipo de dano e as condições determinam se a armadura vale. Armas em estado comprometido continuam utilizáveis com suas limitações narrativas; inutilizadas, esgotadas, armazenadas ou sem usos não rolam.</p><div class="eq-table"><table><tr><th>Arma pessoal</th><th>Arma</th><th>Alcance</th></tr><tr><td>Socos</td><td>0</td><td>Contato</td></tr><tr><td>Faca / bastão</td><td>1</td><td>Contato</td></tr><tr><td>Pistola / submetralhadora</td><td>1</td><td>1 zona</td></tr><tr><td>Rifle de assalto</td><td>2</td><td>2 zonas</td></tr><tr><td>Espingarda</td><td>2</td><td>Mesma zona</td></tr><tr><td>Rifle de precisão</td><td>2</td><td>3 zonas</td></tr><tr><td>Granada</td><td>2</td><td>Mesma ou adjacente</td></tr><tr><td>Lançador pessoal anti-MS</td><td>2</td><td>2 zonas</td></tr></table></div><p>Zonas não são metros. Mesma zona não garante contato; linha de visada continua necessária. Pessoas defendem tiros com Atletismo e corpo a corpo com Lutar ou Atletismo conforme a ficção. MS normalmente defendem com Pilotagem + Mobilidade. Supressão é criar vantagem. Explosão/rajada não concede ataque automático a todos: ataque um alvo ou crie vantagem na área. Ataques múltiplos exigem regra ou façanha própria.</p></section>
+  <section><h3>4 · Escala de ameaça</h3><p>Escalas: pessoa 0; veículo/tanque/mobile pod 1; MS 2; grandes MA/naves 3. Antes de rolar, verifique se a arma pode afetar o alvo: rifle pessoal não danifica casco intacto de Zaku. Sabotar ou atingir componentes expostos exige preparação e permissão da ficção.</p><p>Um lançador pessoal <b>anti-MS</b> ataca como ameaça 2, mas seu operador continua escala 0 ao se defender. A ficha separa ameaça da arma e plataforma. O lado maior recebe +1 no ataque/defesa por degrau e +2 tensões por degrau quando acerta. O lado menor não recebe uma penalidade extra além da defesa superior do alvo.</p></section>
+  <section><h3>5 · Proteção e escudos</h3><p>Traje de piloto protege contra o ambiente indicado, sem Armadura automática. Colete oferece <b>Armadura:1 contra balas e fragmentos de escala pessoal nas regiões protegidas</b>. Blindagem normal do MS já aparece em escala e Estrutura; não dá Armadura adicional. Reforço balístico de MS exige façanha de sistema.</p><p>Use apenas a maior proteção aplicável, nunca some colete, capacete e placa. Proteção não vale automaticamente contra escala superior. Feixe ignora proteção restrita a projéteis/fragmentos; não ignora toda armadura nem todos os escudos. Cobertura pode bloquear a linha de tiro ou fundamentar vantagem; não fornece simultaneamente bônus e Armadura sem regra.</p><p><b>Escudo:</b> com a façanha e posição adequada, absorve 2 tensões e fica destruído. Uma vaga por plataforma, mesmo carregando vários escudos. Sem a façanha, pode fundamentar criar vantagem, sem absorção automática. A reposição exige reparo/substituição entre cenas. A condição não desaparece ao trocar de kit.</p></section>
+  <section><h3>6 · Ferramentas, serviços e consumíveis</h3><p>Kit médico: Conhecimentos para estabilizar e iniciar recuperação. Ferramentas: Ofícios para reparar. Escalada: Atletismo para executar e estabelecer rotas. Sensores/binóculos: Percepção ou Investigação. Terminal: Ofícios para circuitos, Roubo para burlar segurança. Rádio funciona normalmente sem teste; interferência gera oposição. Laser requer linha de visada. Caminhão transporta carga; Pilotagem só quando houver risco.</p><p>Fumaça cria vantagem e não causa dano. Minas/demolição usam Ofícios na instalação, Furtividade se precisar ocultar. Defina gatilho, alvo e potência; resolva uma rolagem relevante no acionamento, sem ataque e dano automáticos duplicados.</p><p>Armas de fogo/feixe não contam cada disparo. Munição termina por condição previamente estabelecida, custo aceito, forçar aspecto ou evento concreto. Um −4 nos dados sozinho não quebra nem esgota equipamento. Granadas, minas e foguetes pessoais gastam um uso mesmo ao falhar; a ficha debita ao rolar, não de novo ao invocar/rerrolar.</p><p>Reserva repõe uma arma esgotada da mesma família. Sob fogo, recarregar custa uma ação. Feixes dependem de infraestrutura adequada; não presuma E-Pacs trocáveis. Propelente, combustível e oxigênio cobrem a missão prevista: desgaste extraordinário cria condições como <i>Oxigênio baixo</i>, com prazo anunciado. Registre-as nas notas/aspectos; não há contador automático de combustível.</p></section>
+  <section><h3>7 · Aquisição e fabricação</h3><p>Material padrão com estoque e autorização: sem teste. Especializado disponível: +2. Restrito/escasso: +4. Raríssimo/experimental ou aquisição clandestina difícil: +6. Recursos paga; Contatos encontra fonte; Comunicação negocia requisição. Role apenas o obstáculo relevante. Falha pode gerar atraso, dívida, item comprometido ou missão. Não repita a mesma tentativa sem mudar as condições.</p><p>Para fabricar/modificar: defina benefício e limitação, obtenha peças/projeto/infraestrutura e use Ofícios se houver risco. Benefício de façanha ocupa vaga. Comprar acessórios não ultrapassa os cinco pontos de sistema; aumentar esse orçamento é progressão da campanha.</p></section>
+  <section><h3>8 · Reparos e consequências</h3><p>Equipamento pode estar operante, comprometido ou inutilizado, sem uma trilha própria de pontos de vida. Desarmar/danificar temporariamente é criar vantagem contra oposição apropriada. Destruição permanente precisa de consequência, custo aceito ou resultado do conflito.</p><div class="eq-table"><table><tr><th>Avaria</th><th>Ofícios</th><th>Após iniciar recuperação</th></tr><tr><td>Suave</td><td>+2</td><td>Uma cena inteira</td></tr><tr><td>Moderada</td><td>+4</td><td>Uma sessão inteira</td></tr><tr><td>Severa</td><td>+6</td><td>Um cenário inteiro</td></tr></table></div><p>Exige ferramentas e infraestrutura compatíveis. <b>Remendo de cabine +4</b> pode restaurar funcionamento acessível até o fim da cena; não apaga a avaria ou libera seu espaço. Aplique a permissão temporária narrativamente; a ficha mantém o sistema marcado como avariado até o reparo. Não é uma cura automática por gastar uma ação.</p></section>
+  <section><h3>9 · Kits de missão</h3><div class="eq-table"><table><tr><th>MS-06F Zaku II</th><th>Carga / efeito</th><th>MS-14A Gelgoog</th><th>Carga / efeito</th></tr><tr><td>Metralhadora</td><td>2 · Arma:1, 2 zonas</td><td>Beam rifle</td><td>2 · Arma:2, 2 zonas</td></tr><tr><td>Bazuca</td><td>2 · Arma:2, 2 zonas</td><td>Beam naginata</td><td>1 · Arma:2, contato</td></tr><tr><td>Heat Hawk</td><td>1 · Arma:1, contato</td><td>Escudo portátil</td><td>1 · requer façanha</td></tr><tr><td>Reserva da metralhadora</td><td>1 · uma reposição</td><td>Reconhecimento</td><td>1 · Percepção</td></tr><tr><td>Escudo fixo</td><td>0 · requer façanha</td><td>Reparo de campo</td><td>1 · Ofícios</td></tr><tr><th>Total</th><th>6</th><th>Total</th><th>6</th></tr></table></div><p>Os kits substituem somente inventário da máquina, definem compatibilidade e preenchem o nome se estava vazio. Não apagam piloto, sistemas, imagem, aspectos, avarias ou façanhas. Se houver vaga, reservam uma façanha Escudo; caso contrário, o item não ganha absorção até liberar vaga. Zaku padrão bloqueia armas de feixe sem conversão aprovada. Ambos são escala 2; Gelgoog não vira mobile armor. Variantes podem exigir ajuste da carga.</p></section>
+  <section><h3>Fontes e limites da automação</h3><p><a href="https://fate-srd.com/fate-core/more-examples-extras" target="_blank" rel="noopener">Fate Core: extras, equipamento e armas</a> · <a href="https://fate-srd.com/fate-core/resources" target="_blank" rel="noopener">Recursos</a> · <a href="https://fate-srd.com/fate-core/resolving-attacks" target="_blank" rel="noopener">Consequências e recuperação</a>.</p><p>Carga, usos, compatibilidade conhecida, alcance em zonas, rolagens e comparação de dano são calculados. A mesa decide permissões, custos, compras, cobertura, reparos, cenas de recuperação e condições de façanhas. Nada disso altera automaticamente outro ator ou concede estoque inexistente.</p></section>
+  </div></article>`;
+})();
+
+</script>
+<!-- equipment bundle end -->
+<script>
+(function(){
+"use strict";
+const $=(s,r)=>(r||document).querySelector(s);
+const $$=(s,r)=>Array.from((r||document).querySelectorAll(s));
+const KEY='fategundam.v1', VKEY='fategundam.view';
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const DIE='<svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="2.5" width="15" height="15" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 6.2v7.6M6.2 10h7.6" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>';
+const IMG={pilot:'assets/piloto.webp',ms:'assets/ms.webp'};
+
+const SKILLS=['Atirar','Atletismo','Comunicação','Conhecimentos','Contatos','Empatia','Enganar','Furtividade','Investigação','Lutar','Ofícios','Percepção','Pilotagem','Provocar','Recursos','Roubo','Vigor','Vontade'];
+const TIERS=[{v:4,n:'Ótimo'},{v:3,n:'Bom'},{v:2,n:'Razoável'},{v:1,n:'Regular'}];
+const LAD={'8':'Lendário','7':'Épico','6':'Fantástico','5':'Excepcional','4':'Ótimo','3':'Bom','2':'Razoável','1':'Regular','0':'Medíocre','-1':'Ruim','-2':'Terrível'};
+const ladder=n=>n>8?'Além de Lendário':n<-2?'Abaixo de Terrível':LAD[String(n)];
+const sgn=n=>(n<0?'−':'+')+Math.abs(n);
+const PTS=5, MAX=2;
+const CLASSES={
+  massa:{n:'Produção em massa',ex:'Zaku II, GM',scale:2,st:2,perk:'Peça sobrando: uma vez por sessão, entre cenas, inicie a recuperação de uma Avaria suave sem rolar Ofícios (a vaga só libera após uma cena inteira).'},
+  custom:{n:'MS de ás',ex:'Zaku II de Char',scale:2,st:2,perk:'Pintura conhecida: no começo de cada conflito, o aspecto Marca vem com uma invocação grátis.'},
+  proto:{n:'Protótipo',ex:'RX-78-2 Gundam',scale:2,st:3,perk:'Uma façanha de sistema a mais. Em troca, o mestre começa cada sessão com uma invocação grátis do Defeito.'},
+  ma:{n:'Mobile armor',ex:'Elmeth, Big Zam',scale:3,st:2,lock:{comb:0},perk:'Escala 3. Combate fica travado em +0, e quem luta corpo a corpo contra ela ganha +2.'},
+  nave:{n:'Nave de guerra',ex:'White Base, Musai',scale:3,st:2,lock:{comb:0},perk:'Escala 3, usada pela tripulação da ponte. Combate fica travado em +0.'}
+};
+const SYS=[
+  {k:'mob',n:'Mobilidade',h:'Soma em Pilotagem: defender, mover, perseguir'},
+  {k:'mira',n:'Mira',h:'Soma em Atirar e nas armas psicomu'},
+  {k:'comb',n:'Combate',h:'Soma em Lutar: sabre, machado, corpo a corpo'},
+  {k:'sens',n:'Sensores',h:'Soma em Percepção e na ordem de turno'},
+  {k:'estr',n:'Estrutura',h:'Não soma; define as caixas de estresse'}
+];
+const SYSN={mob:'Mobilidade',mira:'Mira',comb:'Combate',sens:'Sensores',estr:'Estrutura'};
+// Corpo de avarias de cada tipo de máquina: [local, x%, y%, sistema que zera]
+const BODIES={
+  ms:{img:'assets/ms.webp',kind:'Mobile suit',kana:'モビルスーツ',zones:[['Cabeça',50,6,'sens'],['Propulsores',21,9,'mob'],['Tronco',50,31,null],['Braço D',13,43,'mira'],['Braço E',87,26,'comb'],['Pernas',50,70,'mob']]},
+  ma:{img:'assets/ma.webp',kind:'Mobile armor',kana:'モビルアーマー',wide:true,zones:[['Sensor',40,61,'sens'],['Casco',53,36,null],['Canhões',16,50,'mira'],['Propulsores',87,21,'mob']]},
+  nave:{img:'assets/nave.webp',kind:'Nave de guerra',kana:'戦艦',wide:true,zones:[['Ponte',55,35,'sens'],['Torres',72,47,'mira'],['Casco',45,71,null],['Hangar',21,61,null],['Motores',89,69,'mob']]}
+};
+const bodyKey=c=>c==='ma'?'ma':c==='nave'?'nave':'ms';
+const body=()=>BODIES[bodyKey(state.ms.cls)];
+const zsys=z=>{ const e=body().zones.find(x=>x[0]===z); return e?e[3]:null; };
+const zoneOk=z=>body().zones.some(x=>x[0]===z);
+const DSLOTS=[['l',2,'Suave'],['m',4,'Moderada'],['s',6,'Severa'],['sh',2,'Escudo']];
+const P_ASP=['Conceito','Problema','Aspecto','Aspecto','Aspecto'];
+const P_ASP_PH=['Quem você é, em uma linha','O que complica sua vida','','',''];
+const M_ASP=['Conceito','Defeito','Marca'];
+const M_ASP_PH=['O que ela é e para quem foi feita','O que trai a máquina na hora errada','História, pintura, quem pilotou antes'];
+const RANGES=[['0','Mesma zona'],['1','1 zona'],['2','2 zonas'],['3','3+ zonas']];
+const WSK=['Atirar','Lutar','Vontade'];
+const SCALES=[[0,'Pessoa'],[1,'Veículo'],[2,'MS'],[3,'MA / nave']];
+
+const P_ST=[
+  {id:'as',n:'Ás em desvantagem',d:'+2 em Pilotagem para defender quando houver mais inimigos que aliados na sua zona.'},
+  {id:'cab',n:'Nascido na cabine',d:'+2 em Pilotagem para superar obstáculos dentro de um mobile suit.'},
+  {id:'longe',n:'Tiro de longe',d:'+2 em Atirar para criar vantagem contra alvos a duas zonas ou mais.'},
+  {id:'mec',n:'Mãos de mecânico',d:'Seu remendo na cabine é contra Razoável (+2) em vez de Ótimo (+4).'},
+  {id:'g',n:'Corpo de piloto de teste',d:'+2 em Vigor nas manobras extremas.'},
+  {id:'vet',n:'Ouvido de veterano',d:'Sob partículas Minovsky, seus Sensores somam até duas zonas de distância.'},
+  {id:'flash',nt:true,n:'Flash Newtype',d:'Uma vez por conflito, defenda com Empatia + Mobilidade em vez de Pilotagem + Mobilidade. Com sucesso com estilo, o mestre revela a próxima ação do atacante.'},
+  {id:'press',nt:true,n:'Pressão',d:'Ataque mental com Vontade contra um piloto na sua zona ou na adjacente. O alvo defende com Vontade e o dano vai para o estresse mental.'},
+  {id:'bits',nt:true,psy:true,n:'Controle de bits',d:'Ataque com Vontade + Mira usando armas psicomu e divida o resultado entre alvos a até duas zonas. Requer Psicomunicador na máquina.'},
+  {id:'res',nt:true,n:'Ressonância',d:'Use Empatia para notar pessoas em qualquer ponto da cena, através de paredes e de partículas Minovsky.'}
+];
+const M_ST=[
+  {id:'escudo',n:'Escudo',d:'Uma Avaria suave extra chamada Escudo. Usou, quebrou; volta na próxima manutenção.'},
+  {id:'psy',n:'Psicomunicador',d:'Permite armas psicomu (bits, funnels). Sem piloto Newtype, elas não disparam.'},
+  {id:'core',n:'Core Block',d:'Quando a máquina é tirada de ação, o piloto escapa no núcleo ejetável sem sofrer as tensões que sobraram do ataque.'},
+  {id:'luna',n:'Blindagem de luna titânio',d:'Armadura:1 contra armas físicas (balas, bazucas, machados). Feixes passam normalmente.'},
+  {id:'prop',n:'Propulsores de alto desempenho',d:'+2 em Pilotagem para superar em perseguições e fugas em espaço aberto.'},
+  {id:'mono',n:'Mono-olho de longo alcance',d:'+2 em Percepção para detectar alvos a duas zonas ou mais.'},
+  {id:'amb',n:'Feito para o ambiente',d:'Escolha terra, espaço ou água. Nesse ambiente, ignore uma vez por cena um aspecto de cena que atrapalharia o movimento.'}
+];
+
+function blank(){
+  const dm=()=>({t:'',loc:''});
+  return {v:2,faction:'fed',cockpit:false,show:'pilot',opp:2,mode:'edit',
+    pilot:{name:'',desc:'',img:'',fp:3,trade:false,aspects:[0,1,2,3,4].map(()=>({t:'',nt:false})),
+      skills:{'4':[''],'3':['',''],'2':['','',''],'1':['','','','']},stunts:[],
+      stress:{f:[0,0,0,0],m:[0,0,0,0]},cons:{s:'',m:'',sv:'',x:''}},
+    ms:{name:'',cls:'massa',img:'',aspects:['','',''],sys:{mob:0,mira:0,comb:0,sens:0,estr:0},stunts:[],weapons:[],
+      stress:[0,0,0,0],dmg:{l:dm(),m:dm(),s:dm(),sh:dm()}}};
+}
+const lib=(L,id)=>Object.assign({},L.find(x=>x.id===id));
+function example(){
+  const s=blank(); s.faction='zeon'; s.opp=2; s.mode='play';
+  const p=s.pilot;
+  p.name='Lalah Sune';
+  p.desc='Jovem garota de origem indiana com poderes newtype incrivelmente potentes.';
+  ['Newtype empática que pilota o terrível MAN-08 Elmeth. Minha alcunha é "o Fantasma de Solomon".',
+   'Estou dividida entre meu amor por Char Aznable e por Amuro Ray.',
+   'Sou um newtype!',
+   'Minha vida é inteiramente dedicada àqueles que amo.',
+   'Minha "voz" percorre o espaço e minha "visão" transcende o tempo.'].forEach((t,i)=>p.aspects[i].t=t);
+  p.aspects[2].nt=true;
+  p.skills={'4':['Empatia'],'3':['Pilotagem','Vontade'],'2':['Comunicação','Percepção','Conhecimentos'],'1':['Furtividade','Investigação','Ofícios','Contatos']};
+  p.stunts=[lib(P_ST,'flash'),lib(P_ST,'bits'),lib(P_ST,'res')];
+  const m=s.ms;
+  m.name='MAN-08 Elmeth'; m.cls='ma';
+  m.aspects=['Mobile armor de bits feita para uma Newtype','Enorme e lenta para virar de perto','Ninguém vê de onde vem o tiro'];
+  m.sys={mob:1,mira:2,comb:0,sens:1,estr:1};
+  m.stunts=[lib(M_ST,'psy'),lib(M_ST,'prop')];
+  m.weapons=[{n:'Bits',sk:'Vontade',w:2,r:'2',note:'Psicomu. Atacam de ângulos que o radar não acompanha.'},
+             {n:'Canhões de mega partículas',sk:'Atirar',w:2,r:'2',note:'Disparo frontal; a Elmeth precisa estar virada para o alvo.'}];
+  return s;
+}
+function normalize(o){
+  const b=blank(); if(!o||typeof o!=='object') return b;
+  const s=Object.assign(b,o);
+  s.pilot=Object.assign(blank().pilot,o.pilot||{});
+  s.ms=Object.assign(blank().ms,o.ms||{});
+  s.pilot.skills=Object.assign(blank().pilot.skills,s.pilot.skills||{});
+  s.pilot.stress=Object.assign(blank().pilot.stress,s.pilot.stress||{});
+  s.pilot.cons=Object.assign(blank().pilot.cons,s.pilot.cons||{});
+  s.ms.sys=Object.assign(blank().ms.sys,s.ms.sys||{});
+  const od=(o.ms&&o.ms.dmg)||{}; s.ms.dmg=blank().ms.dmg; ['l','m','s','sh'].forEach(k=>{ if(od[k]) s.ms.dmg[k]=Object.assign({t:'',loc:''},od[k]); });
+  if(!Array.isArray(s.pilot.aspects)||s.pilot.aspects.length!==5) s.pilot.aspects=blank().pilot.aspects;
+  if(!Array.isArray(s.ms.aspects)||s.ms.aspects.length!==3) s.ms.aspects=['','',''];
+  if(!Array.isArray(s.pilot.stunts)) s.pilot.stunts=[]; if(!Array.isArray(s.ms.stunts)) s.ms.stunts=[];
+  if(!Array.isArray(s.ms.weapons)) s.ms.weapons=[];
+  if(!Array.isArray(s.ms.stress)) s.ms.stress=[0,0,0,0];
+  if(!CLASSES[s.ms.cls]) s.ms.cls='massa';
+  if(s.faction!=='zeon') s.faction='fed';
+  if(![0,1,2,3].includes(s.opp)) s.opp=2;
+  if(s.mode!=='play') s.mode='edit';
+  // versão 1 -> 2: escudo virou façanha, tetos novos
+  if(o.ms&&o.ms.shield&&!s.ms.stunts.some(x=>x.id==='escudo')) s.ms.stunts.push(lib(M_ST,'escudo'));
+  delete s.ms.shield;
+  if(o.v!==2){ [[s.pilot.stunts,P_ST],[s.ms.stunts,M_ST]].forEach(([arr,L])=>arr.forEach(st=>{ const ref=st.id&&L.find(x=>x.id===st.id); if(ref) st.d=ref.d; })); }
+  Object.keys(s.ms.sys).forEach(k=>s.ms.sys[k]=Math.max(0,Math.min(sysMax(k,s.ms.cls),+s.ms.sys[k]||0)));
+  s.ms.weapons.forEach(w=>w.w=Math.max(0,Math.min(2,+w.w||0)));
+  s.v=2;
+  return s;
+}
+function sysMax(k,c){ const C=CLASSES[c||state.ms.cls]; return C.lock&&k in C.lock?C.lock[k]:MAX; }
+
+let state, fresh=false, activeDmg='l', equipment;
+try{ const raw=localStorage.getItem(KEY); if(raw) state=normalize(JSON.parse(raw)); }catch(e){}
+if(!state){ state=example(); fresh=true; }
+
+let saveT, saveWarned=false;
+function save(){
+  clearTimeout(saveT);
+  saveT=setTimeout(()=>{ try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){ if(!saveWarned){ saveWarned=true; toast('Este navegador não guardou a ficha. Use Exportar para não perder.'); } } },250);
+}
+function getPath(p){ return p.split('.').reduce((o,k)=>o==null?o:o[k],state); }
+function setPath(p,v){ const ks=p.split('.'); let o=state; for(let i=0;i<ks.length-1;i++){ o=o[ks[i]]; if(o==null) return; } o[ks[ks.length-1]]=v; }
+function bindValues(root){ $$('[data-bind]',root).forEach(el=>{ const v=getPath(el.dataset.bind); el.value=v==null?'':v; }); }
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const rating=sk=>{ for(const t of TIERS){ if((state.pilot.skills[t.v]||[]).includes(sk)) return t.v; } return 0; };
+const hasNT=()=>state.pilot.aspects.some(a=>a.nt);
+const msHas=id=>state.ms.stunts.some(s=>s.id===id);
+const pHas=id=>state.pilot.stunts.some(s=>s.id===id);
+const cls=()=>CLASSES[state.ms.cls];
+const sysUsed=()=>Object.values(state.ms.sys).reduce((a,b)=>a+b,0);
+const dslots=()=>DSLOTS.filter(([k])=>k!=='sh'||msHas('escudo'));
+function downBy(k){ // local que zerou o sistema k, ou null
+  for(const [slot,v] of DSLOTS){ const d=state.ms.dmg[slot]; if(v>=4&&d.loc&&zoneOk(d.loc)&&zsys(d.loc)===k) return d.loc; }
+  return null;
+}
+const eff=k=>downBy(k)?0:state.ms.sys[k];
+const isShip=()=>state.ms.cls==='nave';
+
+/* ---------- construção estática ---------- */
+function buildAspects(){
+  $('#asp-pilot').innerHTML=P_ASP.map((l,i)=>`<div class="asp" data-i="${i}"><span class="asp-l">${l}</span><input id="pa-${i}" data-bind="pilot.aspects.${i}.t" placeholder="${esc(P_ASP_PH[i])}" aria-label="${l}"><button type="button" class="nt-tog" data-nt="${i}" aria-pressed="false" aria-label="Marcar como aspecto Newtype">NT</button></div>`).join('');
+  $('#asp-ms').innerHTML=M_ASP.map((l,i)=>`<div class="asp"><span class="asp-l">${l}</span><input id="ma-${i}" data-bind="ms.aspects.${i}" placeholder="${esc(M_ASP_PH[i])}" aria-label="${l}" style="grid-column:2/-1"></div>`).join('');
+}
+function buildTracks(){
+  const mk=(path)=>[0,1,2,3].map(i=>`<button type="button" class="box" data-box="${path}.${i}" aria-pressed="false" aria-label="Caixa ${i+1}"><span>${i+1}</span></button>`).join('');
+  $('#tr-f').innerHTML=mk('pilot.stress.f'); $('#tr-m').innerHTML=mk('pilot.stress.m'); $('#tr-ms').innerHTML=mk('ms.stress');
+  const pc=[['s',2,'Suave',''],['m',4,'Moderada',''],['sv',6,'Severa',''],['x',2,'Extra','Vigor ou Vontade +5']];
+  $('#cons-pilot').innerHTML=pc.map(([k,v,n,sub])=>`<div class="con" data-con="${k}"><span class="v">${v}</span><span class="n">${n}${sub?`<small>${sub}</small>`:''}</span><input id="pc-${k}" data-bind="pilot.cons.${k}" aria-label="Consequência ${n}"></div>`).join('');
+  $('#cons-ms').innerHTML=DSLOTS.map(([k,v,n])=>`<div class="dcon" data-slot="${k}"><span class="v">${v}</span><div class="top"><span class="n">${n}</span><button type="button" class="loc" data-clearloc="${k}" aria-label="Local da avaria ${n}"></button></div><input id="mc-${k}" data-bind="ms.dmg.${k}.t" aria-label="Avaria ${n}" placeholder="${k==='sh'?'Escudo destruído':'O que quebrou'}"></div>`).join('');
+  $('#mfigs').innerHTML=Object.values(BODIES).map(b=>`<figure class="mfig-c"><div class="dfig mfig"><img src="${b.img}" alt="${b.kind} com os locais de avaria">${b.zones.map(([z,x,y,k])=>`<span class="zone" style="left:${x}%;top:${y}%">${z}<small>${k?'−'+SYSN[k]:'só aspecto'}</small></span>`).join('')}</div><figcaption>${b.kind}</figcaption></figure>`).join('');
+}
+function buildSelects(){
+  $('#ms-cls').innerHTML=Object.entries(CLASSES).map(([k,c])=>`<option value="${k}">${c.n}</option>`).join('');
+  $('#cls-table').innerHTML=Object.values(CLASSES).map(c=>`<tr><td class="k">${c.n}</td><td>${c.ex}</td><td class="num">${c.scale}</td><td>${c.perk}</td></tr>`).join('');
+  $('#lib-pilot').innerHTML=`<optgroup label="Piloto">${P_ST.filter(s=>!s.nt).map(s=>`<option value="${s.id}">${s.n}</option>`).join('')}</optgroup><optgroup label="Newtype (requer aspecto NT)">${P_ST.filter(s=>s.nt).map(s=>`<option value="${s.id}">${s.n}</option>`).join('')}</optgroup>`;
+  $('#lib-ms').innerHTML=M_ST.map(s=>`<option value="${s.id}">${s.n}</option>`).join('');
+  $('#nt-list').innerHTML=P_ST.filter(s=>s.nt).map(s=>`<li><b>${s.n}.</b> ${s.d}</li>`).join('');
+  $('#ms-st-list').innerHTML=M_ST.map(s=>`<li><b>${s.n}.</b> ${s.d}</li>`).join('');
+  $('#opp').innerHTML=SCALES.map(([v,n])=>`<button type="button" data-opp="${v}" aria-pressed="false">${n}</button>`).join('');
+}
+
+/* ---------- partes dinâmicas ---------- */
+function renderPyramid(){
+  const used=new Set(); TIERS.forEach(t=>state.pilot.skills[t.v].forEach(s=>s&&used.add(s)));
+  $('#pyr').innerHTML=TIERS.map(t=>`<div class="tier t${t.v}"><div class="tier-l">${t.n}<b>${sgn(t.v)}</b></div><div class="tier-slots">${state.pilot.skills[t.v].map((s,i)=>`<div class="sk${s?' filled':''}"><select id="sk-${t.v}-${i}" data-tier="${t.v}" data-idx="${i}" aria-label="Perícia ${t.n}, espaço ${i+1}"><option value="">—</option>${SKILLS.map(n=>`<option${n===s?' selected':''}${used.has(n)&&n!==s?' disabled':''}>${n}</option>`).join('')}</select><button type="button" class="die" data-roll="${esc(s)}" ${s?'':'disabled'} aria-label="Rolar ${esc(s||'perícia')}">${DIE}</button></div>`).join('')}</div></div>`).join('');
+}
+function renderStunts(who){
+  const arr=state[who].stunts, el=$('#st-'+who);
+  el.innerHTML=arr.length?arr.map((s,i)=>`<div class="stunt" data-i="${i}"><input id="st-${who}-${i}-n" data-bind="${who}.stunts.${i}.n" placeholder="Nome da façanha" aria-label="Nome da façanha"><div class="tags">${s.nt?'<span class="tag nt">Newtype</span>':''}<span class="tag lock" hidden></span><button type="button" class="x" data-del-stunt="${who}" data-i="${i}" aria-label="Remover façanha">×</button></div><textarea id="st-${who}-${i}-d" rows="2" data-bind="${who}.stunts.${i}.d" placeholder="O que ela faz, em termos de jogo" aria-label="Efeito da façanha"></textarea></div>`).join(''):'<p class="empty">Nenhuma façanha ainda.</p>';
+  bindValues(el);
+}
+function renderLocks(){
+  $$('#st-pilot .stunt').forEach(row=>{
+    const s=state.pilot.stunts[+row.dataset.i]; if(!s) return;
+    let msg=''; if(s.nt&&!hasNT()) msg='Requer aspecto NT'; else if(s.psy&&!msHas('psy')) msg='Requer Psicomunicador';
+    const tag=$('.tag.lock',row); tag.hidden=!msg; tag.textContent=msg; row.classList.toggle('locked',!!msg);
+  });
+}
+function renderWeapons(){ equipment?.render(); }
+function renderSys(){
+  const used=sysUsed();
+  $('#sys').innerHTML=SYS.map(s=>{ const v=state.ms.sys[s.k], mx=sysMax(s.k), d=downBy(s.k);
+    return `<div class="sys"><div class="sys-n"><b>${s.n}</b><small>${d?`<span class="down">Zerado pela avaria em ${d}</span>`:(mx===0&&s.k==='comb'?'Travado em +0 nesta classe':s.h)}</small><div class="spips">${Array.from({length:MAX},(_,i)=>`<i class="${i<v?'on':''}"></i>`).join('')}</div></div><div class="stepper"><button type="button" class="step" data-sys="${s.k}" data-d="-1" aria-label="Diminuir ${s.n}" ${v<=0?'disabled':''}>−</button><output class="${d&&v?'zero':''}" aria-label="${s.n}">${sgn(v)}</output><button type="button" class="step" data-sys="${s.k}" data-d="1" aria-label="Aumentar ${s.n}" ${(v>=mx||used>=PTS)?'disabled':''}>+</button></div></div>`; }).join('');
+  $('#bar').innerHTML=Array.from({length:Math.max(PTS,used)},(_,i)=>`<i class="${i<used?'on':''}"></i>`).join('');
+  $('#budget').classList.toggle('over',used>PTS);
+  $('#budget-t').textContent=used>PTS?`${used} de ${PTS} pontos: tire ${used-PTS}`:`${used} de ${PTS} pontos · máximo +2 por sistema`;
+}
+function renderTrack(id,path,count){
+  $$('#'+id+' .box').forEach((b,i)=>{ const v=!!getPath(path+'.'+i); b.disabled=i>=count; b.setAttribute('aria-pressed',String(v&&i<count)); });
+}
+function refresh(){ const n=state.pilot.stunts.length; if(n>3) return Math.max(1,3-(n-3)); return state.pilot.trade?3+(3-n):3; }
+function renderSockets(){
+  const st=state.pilot.stunts, n=st.length, trade=!!state.pilot.trade;
+  $('#trade').setAttribute('aria-pressed',String(trade));
+  const cells=[];
+  for(let i=0;i<Math.max(3,n);i++){
+    const s=st[i];
+    if(s) cells.push(`<div class="sock ${i<3?'full':'paid'}"><b>${esc(s.n||'Sem nome')}</b>${i<3?'grátis':'−1 Recarga'}</div>`);
+    else if(trade) cells.push(`<div class="sock traded"><i></i>+1 Recarga</div>`);
+    else cells.push(`<div class="sock">Encaixe livre</div>`);
+  }
+  $('#sockets').innerHTML=cells.join('');
+}
+function renderFP(){
+  const ref=refresh(), fp=state.pilot.fp;
+  $('#fp-n').textContent=fp;
+  $('#fp-pips').innerHTML=Array.from({length:Math.max(ref,fp)},(_,i)=>`<i class="pip${i<fp?' on':''}"></i>`).join('');
+  $('[data-fp="-1"]').disabled=fp<=0;
+}
+let shownBody=null;
+function renderBodyFig(){
+  const k=bodyKey(state.ms.cls); if(k===shownBody) return; shownBody=k;
+  const b=BODIES[k], f=$('#dfig');
+  $('#dmg-wrap').classList.toggle('wide',!!b.wide);
+  f.innerHTML=`<img src="${b.img}" alt="Diagrama de ${b.kind.toLowerCase()} para marcar avarias">`+b.zones.map(([z,x,y])=>`<button type="button" class="zone" data-zone="${z}" style="left:${x}%;top:${y}%">${z}<small></small></button>`).join('');
+}
+function renderDamage(){
+  renderBodyFig();
+  const sev={}; DSLOTS.forEach(([k,v])=>{ const d=state.ms.dmg[k]; if(d.loc&&zoneOk(d.loc)&&(k!=='sh'||msHas('escudo'))) sev[d.loc]=Math.max(sev[d.loc]||0,v); });
+  $$('#dfig .zone').forEach(z=>{ const n=z.dataset.zone, s=sev[n]||0; if(s) z.dataset.sev=s; else delete z.dataset.sev;
+    $('small',z).textContent= s>=4&&zsys(n)?`−${SYSN[zsys(n)]}`:(s?'avariado':'');
+    z.setAttribute('aria-label',`${n}${s?', avariado':''}. Marcar na avaria selecionada`); });
+  $$('#cons-ms .dcon').forEach(row=>{ const k=row.dataset.slot, d=state.ms.dmg[k];
+    row.hidden=k==='sh'&&!msHas('escudo'); row.classList.toggle('active',k===activeDmg);
+    const b=$('.loc',row); b.textContent=d.loc?d.loc+' ×':'sem local'; b.classList.toggle('set',!!d.loc); b.disabled=k==='sh'; if(k==='sh') b.hidden=true; });
+}
+function renderDerived(){
+  const n=state.pilot.stunts.length, extra=Math.max(0,n-3);
+  $('#refresh').textContent=refresh();
+  $('#refresh-note').textContent=n>3?`${extra} façanha${extra>1?'s':''} paga${extra>1?'s':''} com Recarga`:(state.pilot.trade&&n<3?`3 + ${3-n} de encaixe${3-n>1?'s':''} trocado${3-n>1?'s':''}`:`${3-n} de 3 encaixes grátis livres`);
+  renderFP(); renderSockets();
+  const boxes=r=>2+(r>=1?1:0)+(r>=3?1:0);
+  const rv=rating('Vigor'), rw=rating('Vontade');
+  renderTrack('tr-f','pilot.stress.f',boxes(rv)); $('#tn-f').textContent=`Vigor ${ladder(rv)}: ${boxes(rv)} caixas`;
+  renderTrack('tr-m','pilot.stress.m',boxes(rw)); $('#tn-m').textContent=`Vontade ${ladder(rw)}: ${boxes(rw)} caixas`;
+  const px=rv>=5||rw>=5; const xc=$('[data-con="x"]'); xc.classList.toggle('off',!px); $('input',xc).disabled=!px;
+  const c=cls(), e=state.ms.sys.estr, mcount=[2,3,4][e]||2;
+  renderTrack('tr-ms','ms.stress',mcount); $('#tn-ms').textContent=`Estrutura ${sgn(e)}: ${mcount} caixas`;
+  $('#ms-scale').textContent=c.scale; $('#lk-scale').textContent=c.scale;
+  $('#cls-perk').innerHTML=`<b>${c.n}</b>${c.perk}`;
+  $('#ms-h').textContent=body().kind; $('#ms-kana').textContent=body().kana; $('#lk-kind').textContent=body().kind;
+  const ns=state.ms.stunts.length; const lim=$('#ms-limit');
+  lim.textContent=ns>c.st?`${ns} de ${c.st} façanhas: acima do limite da classe`:`${ns} de ${c.st} façanhas da classe`;
+  lim.classList.toggle('over',ns>c.st);
+  renderDamage(); renderLink(); renderLocks(); renderCombat(); renderView();
+}
+function renderLink(){
+  $('#lk-pilot').textContent=state.pilot.name||'Sem nome';
+  $('#lk-ms').textContent=state.ms.name||'Sem designação';
+  $('#ms-decal').textContent=state.ms.img?`Piloto ${state.pilot.name||'—'} · escala ${cls().scale}`:'Figura padrão · envie a imagem da sua máquina';
+  $('#p-decal').hidden=!hasNT();
+}
+function renderNT(flashIdx){
+  $$('.nt-tog').forEach(b=>b.setAttribute('aria-pressed',String(!!state.pilot.aspects[+b.dataset.nt].nt)));
+  if(flashIdx!=null&&!RM){ const row=$(`.asp[data-i="${flashIdx}"]`); row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash'); }
+  renderLink(); renderLocks(); renderCombat();
+}
+function renderImages(){
+  ['pilot','ms'].forEach(w=>{ const fig=$('#img-'+w), img=$('img',fig), src=state[w].img;
+    img.src=src||(w==='ms'?body().img:IMG[w]); img.classList.toggle('dflt',!src);
+    $(`[data-rmimg="${w}"]`).hidden=!src; });
+  $('#p-dflt').hidden=!!state.pilot.img;
+  renderLink();
+}
+
+/* ---------- modo de combate ---------- */
+const P=n=>({l:n,v:rating(n)});
+const S=k=>({l:SYSN[k]+(downBy(k)?' (zerado)':''),v:eff(k)});
+function actions(){
+  const A=[], nt=hasNT();
+  A.push({kind:'Defender',n:'Esquivar',parts:[P('Pilotagem'),S('mob')]});
+  if(pHas('flash')&&nt) A.push({kind:'Defender',n:'Flash Newtype',nt:true,parts:[P('Empatia'),S('mob')],note:'Uma vez por conflito.'});
+  A.push({kind:'Superar',n:isShip()?'Manobrar a nave':'Mover e perseguir',parts:[P('Pilotagem'),S('mob')]});
+  A.push({kind:'Notar',n:'Detectar e turno',parts:[P('Percepção'),S('sens')],note:'Sob Minovsky densa, Sensores só somam até a zona ao lado.'});
+  A.push(...equipment.actions("ms"));
+  if(!state.ms.weapons.some(w=>w.sk==='Lutar')&&!isShip()) A.push({kind:'Atacar',n:'Golpe corpo a corpo',w:0,parts:[P('Lutar'),S('comb')]});
+  if(pHas('press')&&nt) A.push({kind:'Atacar',n:'Pressão',nt:true,mental:true,w:0,parts:[P('Vontade')],note:'Ataque mental; o alvo defende com Vontade.'});
+  A.push({kind:'Criar vantagem',n:'Manobra extrema',parts:[P('Vigor')].concat(pHas('g')?[{l:'Corpo de piloto de teste',v:2}]:[]),note:'Falhou: estresse físico igual à diferença.'});
+  A.push({kind:'Criar vantagem',n:'Ler o inimigo',parts:[P('Conhecimentos')],note:'Revela ou cria um aspecto da máquina inimiga.'});
+  A.push({kind:'Criar vantagem',n:'Ordem pelo rádio',parts:[P('Comunicação')],note:'A invocação grátis vai para um aliado.'});
+  A.push({kind:'Superar',n:'Remendo na cabine',parts:[P('Ofícios')],note:`Contra ${pHas('mec')?'Razoável (+2)':'Ótimo (+4)'}: restaura funcionamento até o fim da cena, sem apagar a avaria. Gasta sua ação.`});
+  return A;
+}
+function scaleDiff(a){ if(a.mental||!(a.kind==='Atacar'||a.kind==='Defender')) return 0; return (a.gear?FGEquipment.threat(state,a.who,FGEquipment.get(state,a.who,a.gear)):cls().scale)-state.opp; }
+function withScale(a){ const d=scaleDiff(a); const parts=a.parts.slice(); if(d>0) parts.push({l:'Escala',v:d}); return {parts,d}; }
+function renderCombat(){
+  if(!state.cockpit) return;
+  $$('#opp button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.opp===state.opp)));
+  const A=actions();
+  $('#tiles').innerHTML=A.map((a,i)=>{ const {parts}=withScale(a); const t=parts.reduce((s,p)=>s+p.v,0);
+    return `<button type="button" class="tile${a.nt?' nt':''}${a.warn?' warn':''}" data-kind="${a.kind}" data-tile="${i}"><span class="k">${a.kind}${a.w?` · Arma:${a.w}`:''}</span><span class="tn">${esc(a.n)}</span><span class="tf">${parts.map(p=>`${esc(p.l)} ${sgn(p.v)}`).join(' · ')}</span><span class="tt">${sgn(t)}</span></button>`; }).join('');
+  const nd=dslots().filter(([k])=>state.ms.dmg[k].t||state.ms.dmg[k].loc).length;
+  $('#eject-note').textContent=`Ejetar é conceder: +${1+nd} ponto${nd?'s':''} de destino (1 + ${nd} avaria${nd===1?'':'s'}) e a campanha fica Sem máquina.`;
+}
+function rollAction(i){
+  const a=actions()[i]; if(!a) return;
+  if(a.gear) return equipment.use(a.who,a.gear);
+  const {parts,d}=withScale(a);
+  const notes=[]; if(a.note) notes.push(a.note);
+  if(a.kind==='Atacar'&&!a.mental){ const extra=(a.w||0)+(d>0?2*d:0); notes.push(`Ao empatar ou superar a defesa: +${extra} tensões${a.w?` (Arma:${a.w}`:''}${d>0?`${a.w?', ':' ('}escala +${2*d}`:''}${a.w||d>0?')':''}.`); }
+  if(d<0&&(a.kind==='Atacar'||a.kind==='Defender')) notes.push(`O oponente é maior: ele soma +${-d} contra você.`);
+  roll(a.n,parts,notes.join(' '),!!a.warn);
+}
+/* ---------- modo Jogar: ficha limpa ---------- */
+function vimg(src,dflt,alt){ return `<img src="${esc(src||dflt)}" alt="${esc(alt)}"${src?'':' class="dflt"'}>`; }
+function vtext(t){ return t&&String(t).trim()?esc(t):'<span class="vnone">—</span>'; }
+function renderView(){
+  if(state.mode!=='play') return;
+  const p=state.pilot, m=state.ms, c=cls(), nt=hasNT(), ref=refresh();
+  const asp=p.aspects.map((a,i)=>`<dt>${P_ASP[i]}</dt><dd class="${a.nt?'nt':''}${a.t.trim()?'':' none'}">${a.t.trim()?esc(a.t):'—'}</dd>`).join('');
+  const sk=TIERS.map(t=>{ const list=p.skills[t.v].filter(Boolean); if(!list.length) return ''; return `<div class="vsk-r t${t.v}"><span class="vk">${t.n}<b>${sgn(t.v)}</b></span><div class="vchips">${list.map(n=>`<button type="button" class="vchip" data-roll="${esc(n)}" aria-label="Rolar ${esc(n)}">${esc(n)}</button>`).join('')}</div></div>`; }).join('');
+  const pst=p.stunts.length?p.stunts.map(s=>{ const lock=(s.nt&&!nt)||(s.psy&&!msHas('psy')); return `<div class="it${lock?' locked':''}"><b>${esc(s.n||'Sem nome')}</b>${s.nt?'<span class="tag nt">Newtype</span>':''}${lock?'<span class="tag lock">Travada</span>':''}<p>${esc(s.d||'')}</p></div>`; }).join(''):'<p class="vnone">Sem façanhas.</p>';
+  $('#vc-pilot').innerHTML=`
+    <header class="vh">${vimg(state.pilot.img,IMG.pilot,'Retrato do piloto')}<div><span class="vk">Piloto${nt?' · Newtype':''}</span><h2>${esc(p.name||'Sem nome')}</h2>${p.desc?`<p>${esc(p.desc)}</p>`:''}
+      <div class="vmeta"><span><span class="vk">Recarga</span><b>${ref}</b></span><span><span class="vk">Pontos de destino</span><b>${p.fp}</b><span class="pips">${Array.from({length:Math.max(ref,p.fp)},(_,i)=>`<i class="pip${i<p.fp?' on':''}"></i>`).join('')}</span></span></div></div></header>
+    <section class="vsec"><h3>Aspectos</h3><dl class="vasp">${asp}</dl></section>
+    <section class="vsec"><h3>Perícias <small>clique para rolar</small></h3><div class="vsk">${sk||'<p class="vnone">Sem perícias na pirâmide.</p>'}</div></section>
+    <section class="vsec"><h3>Façanhas</h3><div class="vlist">${pst}</div></section><div data-eq-play="pilot"></div>`;
+  const sys=SYS.map(x=>{ const v=state.ms.sys[x.k], d=downBy(x.k); return `<div class="vsys-r${d&&v?' down':''}"><span>${x.n}</span><div class="vbar">${Array.from({length:MAX},(_,i)=>`<i class="${i<v?'on':''}"></i>`).join('')}</div><b>${sgn(v)}</b>${d&&v?`<small>Zerado pela avaria em ${esc(d)}</small>`:''}</div>`; }).join('');
+  const mst=m.stunts.length?m.stunts.map(s=>`<div class="it"><b>${esc(s.n||'Sem nome')}</b><p>${esc(s.d||'')}</p></div>`).join(''):'<p class="vnone">Sem façanhas de sistema.</p>';
+  const rng=r=>(RANGES.find(x=>x[0]===String(r))||RANGES[0])[1].toLowerCase();
+  const wpn=m.weapons.length?m.weapons.map(w=>`<div class="it"><b>${esc(w.n||'Arma sem nome')}</b><span class="w">Arma:${+w.w||0}</span><small>${esc(w.sk)} · ${rng(w.r)}${w.note?' · '+esc(w.note):''}</small></div>`).join(''):'<p class="vnone">Sem armas.</p>';
+  $('#vc-ms').innerHTML=`
+    <header class="vhero">${vimg(m.img,body().img,'Imagem da máquina')}<div><span class="vk">${body().kind} · ${c.n} · escala ${c.scale}</span><h2>${esc(m.name||'Sem designação')}</h2></div></header>
+    <section class="vsec"><h3>Aspectos da máquina</h3><dl class="vasp">${M_ASP.map((l,i)=>`<dt>${l}</dt><dd class="${m.aspects[i].trim()?'':'none'}">${m.aspects[i].trim()?esc(m.aspects[i]):'—'}</dd>`).join('')}</dl></section>
+    <section class="vsec"><h3>Sistemas</h3><div class="vsys">${sys}</div></section>
+    <section class="vsec"><h3>${c.n}</h3><p class="vperk">${c.perk}</p></section>
+    <section class="vsec"><h3>Façanhas de sistema</h3><div class="vlist">${mst}</div></section>
+    <div data-eq-play="ms"></div>`;
+  equipment?.render();
+}
+function renderMode(){
+  const play=state.mode==='play';
+  document.documentElement.dataset.mode=state.mode;
+  $$('[data-mode]').forEach(b=>{ if(b.tagName==='BUTTON') b.setAttribute('aria-pressed',String(b.dataset.mode===state.mode)); });
+  renderView();
+}
+const homes={};
+function placePanels(){
+  const on=!!state.cockpit, play=state.mode==='play';
+  ['pn-mdmg','pn-pstress'].forEach(id=>{ const el=$('#'+id);
+    if(!homes[id]) homes[id]=el.parentNode;
+    if(on) (id==='pn-mdmg'?$('#cb-left'):$('#cb-right')).appendChild(el);
+    else if(play) (id==='pn-mdmg'?$('#vw-ms'):$('#vw-pilot')).appendChild(el);
+    else homes[id].appendChild(el);
+  });
+}
+function renderCockpit(animate){
+  const on=!!state.cockpit;
+  $('#cockpit').setAttribute('aria-pressed',String(on));
+  $('#hatch-lbl').textContent=on?'Sair da cabine':'Entrar na cabine';
+  const play=state.mode==='play';
+  $('#link-note').innerHTML=on?'Modo de combate: cada ação já soma <b>perícia + sistema</b>. Toque para rolar.':(play?'Ficha de jogo: estresse, consequências e consumo de equipamentos acompanham a missão. Feche a escotilha para lutar.':'Modo de edição: monte e ajuste a ficha. Use Jogar para a ficha limpa.');
+  $('#combat').hidden=!on; $('#cols').hidden=on||play; $('#view').hidden=on||!play; $('#mswitch').hidden=on;
+  placePanels();
+  if(on) renderCombat();
+  equipment?.render();
+  if(animate&&on&&!RM){ const sc=$('#scan'); sc.style.setProperty('--h',$('#combat').offsetHeight+'px'); sc.classList.remove('go'); void sc.offsetWidth; sc.classList.add('go'); }
+}
+function renderFaction(){
+  document.documentElement.dataset.faction=state.faction;
+  $$('[data-fac]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.fac===state.faction)));
+}
+function renderShow(){
+  $('#cols').dataset.show=state.show; $('#view').dataset.show=state.show;
+  $$('[data-show]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.show===state.show)));
+}
+function renderAll(){
+  renderFaction(); renderShow();
+  renderPyramid(); renderStunts('pilot'); renderStunts('ms'); renderWeapons(); renderSys();
+  bindValues(document); $('#ms-cls').value=state.ms.cls;
+  renderNT(); renderImages(); renderMode(); renderCockpit(false); renderDerived();
+}
+
+/* ---------- dados ---------- */
+const tray={cur:null,token:0};
+const rand4=()=>[0,0,0,0].map(()=>Math.floor(Math.random()*3)-1);
+const face=v=>v>0?'+':v<0?'−':'';
+function roll(title,parts,note,warn){
+  equipment?.resetResult();
+  tray.cur={title,parts,bonus:0,dice:rand4()};
+  $('#tray-card').hidden=false; $('#tray-pill').hidden=true;
+  $('#tr-title').textContent=title;
+  const tn=$('#tr-note'); tn.hidden=!note; tn.textContent=note||''; tn.classList.toggle('warn',!!warn);
+  animateDice();
+  return parts.reduce((v,p)=>v+p.v,0)+tray.cur.dice.reduce((v,d)=>v+d,0);
+}
+function animateDice(){
+  const c=tray.cur, my=++tray.token, ds=$$('#dice .fd');
+  if(RM){ ds.forEach((d,i)=>{ d.dataset.v=c.dice[i]; d.textContent=face(c.dice[i]); }); paintTotal(); return; }
+  $('#tr-total').textContent='…'; $('#tr-ladder').textContent=''; $('#tr-brk').textContent='';
+  ds.forEach((d,i)=>{
+    d.classList.remove('land'); d.classList.add('roll'); let k=i;
+    const iv=setInterval(()=>{ if(my!==tray.token){ clearInterval(iv); return; } const v=[-1,0,1][k++%3]; d.dataset.v=v; d.textContent=face(v); },65);
+    setTimeout(()=>{ clearInterval(iv); if(my!==tray.token) return; d.classList.remove('roll'); d.dataset.v=c.dice[i]; d.textContent=face(c.dice[i]); void d.offsetWidth; d.classList.add('land'); if(i===3) paintTotal(); },380+i*120);
+  });
+}
+function paintTotal(){
+  const c=tray.cur, ds=c.dice.reduce((a,b)=>a+b,0), base=c.parts.reduce((a,p)=>a+p.v,0), tot=base+ds+c.bonus;
+  equipment?.paintResult(tot);
+  $('#tr-total').textContent=sgn(tot); $('#tr-ladder').textContent=ladder(tot);
+  $('#tr-brk').textContent=[...c.parts.map(p=>`${p.l} ${sgn(p.v)}`),`dados ${sgn(ds)}`,...(c.bonus?[`invocações ${sgn(c.bonus)}`]:[])].join(' · ');
+}
+function spend(){
+  if($('#tr-free').checked) return true;
+  if(state.pilot.fp<=0){ toast('Sem pontos de destino. Marque "grátis" se for uma invocação gratuita.'); return false; }
+  state.pilot.fp--; renderFP(); save(); return true;
+}
+
+/* ---------- criador de façanha ---------- */
+// Ações de cada perícia na tabela do Fate Core, com Pilotagem no lugar de Condução.
+const ACTS={'Atirar':['Superar','Criar vantagem','Atacar'],'Atletismo':['Superar','Criar vantagem','Defender'],'Comunicação':['Superar','Criar vantagem','Defender'],'Conhecimentos':['Superar','Criar vantagem'],'Contatos':['Superar','Criar vantagem','Defender'],'Empatia':['Superar','Criar vantagem','Defender'],'Enganar':['Superar','Criar vantagem','Defender'],'Furtividade':['Superar','Criar vantagem','Defender'],'Investigação':['Superar','Criar vantagem'],'Lutar':['Superar','Criar vantagem','Atacar','Defender'],'Ofícios':['Superar','Criar vantagem'],'Percepção':['Superar','Criar vantagem','Defender'],'Pilotagem':['Superar','Criar vantagem','Defender'],'Provocar':['Superar','Criar vantagem','Atacar'],'Recursos':['Superar','Criar vantagem'],'Roubo':['Superar','Criar vantagem'],'Vigor':['Superar','Criar vantagem'],'Vontade':['Superar','Criar vantagem','Defender']};
+const ACTIONS=['Superar','Criar vantagem','Atacar','Defender'];
+const ACTV={'Superar':'superar','Criar vantagem':'criar vantagem','Atacar':'atacar','Defender':'defender'};
+const FREQ=[['cena','uma vez por cena'],['sessao','uma vez por sessão'],['pd','gastando 1 ponto de destino'],['sempre','sempre']];
+const BTYPES=[['bonus','Bônus de +2','+2 numa ação, numa circunstância estreita'],['acao','Nova ação','Uma perícia faz o que normalmente não faz'],['excecao','Exceção à regra','Quebra uma regra, com limite de uso']];
+const BEX={
+  pilot:{bonus:{why:'treinei manobras em gravidade zero',skill:'Pilotagem',action:'Superar',when:'manobro entre destroços no espaço',name:'Dança nos destroços'},
+         acao:{why:'decorei os manuais de combate da Federação e de Zeon',skill:'Conhecimentos',action:'Defender',when:'um MS de série me ataca com uma manobra padrão',name:'Já li esse manual'},
+         excecao:{why:'conheço cada parafuso da minha máquina',freq:'sessao',effect:'apago uma Avaria moderada no fim de uma cena de manutenção',name:'Mecânico de bordo'}},
+  ms:{bonus:{why:'tem propulsores de longo curso',skill:'Pilotagem',action:'Superar',when:'persegue um alvo em espaço aberto',name:'Pós-combustor'},
+      acao:{why:'tem o ombro blindado para abalroar',skill:'Pilotagem',action:'Atacar',when:'avança em linha reta contra uma máquina na mesma zona',name:'Ombrada'},
+      excecao:{why:'tem um gerador reserva',freq:'sessao',effect:'ignora uma Avaria que zerou um sistema até o fim da cena',name:'Gerador reserva'}}
+};
+let B=null;
+function openBuilder(who){
+  B={who,type:'bonus',why:'',skill:'Pilotagem',action:'Superar',when:'',freq:'cena',effect:'',name:'',nt:false,last:{}};
+  $('#bname').value=''; $('#bnt').checked=false;
+  renderBuilder(); $('#builder').hidden=false; const f=$('#bsent .slot'); if(f) f.focus();
+}
+const subj=()=>B.who==='ms'?'Porque esta máquina':'Porque eu';
+function slotIn(k,ph){ return `<input class="slot${B[k]?' filled':''}" data-b="${k}" value="${esc(B[k])}" placeholder="${ph}" aria-label="${ph}">`; }
+function slotSel(k,opts){ const lb={skill:'Perícia',action:'Ação',freq:'Frequência'}[k]; return `<select class="slot filled" data-b="${k}" aria-label="${lb}">${opts.map(([v,n])=>`<option value="${esc(v)}"${v===B[k]?' selected':''}>${esc(n)}</option>`).join('')}</select>`; }
+function renderBuilder(){
+  $('#btypes').innerHTML=BTYPES.map(([k,n,d])=>`<button type="button" class="btype" data-btype="${k}" aria-pressed="${k===B.type}"><b>${n}</b><small>${d}</small></button>`).join('');
+  $$('#bwho button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.bwho===B.who)));
+  $('#bnt-wrap').hidden=B.who!=='pilot';
+  const sk=slotSel('skill',SKILLS.map(s=>[s,s])), ac=slotSel('action',ACTIONS.map(a=>[a,ACTV[a]]));
+  const who=B.who==='ms';
+  let h;
+  if(B.type==='bonus') h=`${subj()} ${slotIn('why',who?'tem o quê':'o que você é ou fez')}, ${who?'o piloto recebe':'recebo'} <span class="plus">+2</span> em ${sk} para ${ac} quando ${slotIn('when','em que situação')}.`;
+  else if(B.type==='acao') h=`${subj()} ${slotIn('why',who?'tem o quê':'o que você é ou fez')}, ${who?'o piloto pode':'posso'} usar ${sk} para ${ac} quando ${slotIn('when','em que situação')}.`;
+  else h=`${subj()} ${slotIn('why',who?'tem o quê':'o que você é ou fez')}, ${slotSel('freq',FREQ)} ${slotIn('effect','qual regra você quebra')}.`;
+  $('#bsent').innerHTML=h;
+  $$('#bsent input.slot').forEach(fitSlot);
+  renderChecks();
+}
+function fitSlot(el){ el.style.width=Math.max(8,Math.min(48,(el.value||el.placeholder).length+2))+'ch'; }
+function stuntText(){
+  const who=B.who==='ms';
+  if(B.type==='bonus') return `${subj()} ${B.why}, ${who?'o piloto recebe':'recebo'} +2 em ${B.skill} para ${ACTV[B.action]} quando ${B.when}.`;
+  if(B.type==='acao') return `${subj()} ${B.why}, ${who?'o piloto pode':'posso'} usar ${B.skill} para ${ACTV[B.action]} quando ${B.when}.`;
+  const f=B.freq==='sempre'?'':FREQ.find(x=>x[0]===B.freq)[1]+', ';
+  return `${subj()} ${B.why}, ${f}${B.effect}.`;
+}
+function builderChecks(){
+  const C=[], t=B.type, why=B.why.trim(), when=B.when.trim();
+  C.push(why?{s:'ok',t:'A façanha nasce de quem usa: a justificativa está na ficção.'}:{s:'fail',t:'Complete o "porque": o livro pede que a façanha venha do personagem ou da máquina.'});
+  if(t!=='excecao'){
+    if(!when) C.push({s:'fail',t:'Falta a circunstância. Sem ela, o efeito vale sempre e passa do limite de uma façanha.'});
+    else if(when.length<14) C.push({s:'warn',t:'Circunstância curta. Diga quando, onde ou contra quem, para ela não valer o tempo todo.'});
+    else C.push({s:'ok',t:'Circunstância estreita: o efeito aparece em parte das cenas, não em todas.'});
+  }
+  if(t==='acao'){
+    const has=(ACTS[B.skill]||[]).includes(B.action);
+    C.push(has?{s:'fail',t:`${B.skill} já pode ${ACTV[B.action]} sem façanha. Escolha outra ação ou troque para Bônus de +2.`}:{s:'ok',t:`${B.skill} normalmente não pode ${ACTV[B.action]}: é uma ação nova de verdade.`});
+  }
+  if(t==='bonus'&&B.action==='Atacar') C.push({s:'warn',t:'Bônus de ataque pesa em todo conflito. Deixe a circunstância bem estreita.'});
+  if(t==='excecao'){
+    C.push(B.effect.trim()?{s:'ok',t:'A regra quebrada está escrita.'}:{s:'fail',t:'Escreva o efeito: que regra do jogo a façanha quebra.'});
+    C.push(B.freq==='sempre'?{s:'warn',t:'Efeito sem limite de uso: mantenha do tamanho de +2 ou 2 tensões.'}:{s:'ok',t:'Efeito forte com limite de uso, como o livro recomenda.'});
+  }
+  if(B.who==='pilot'&&B.nt&&!hasNT()) C.push({s:'warn',t:'Façanha Newtype: fica travada até a ficha ter um aspecto NT.'});
+  C.push(B.name.trim()?{s:'ok',t:'Tem nome.'}:{s:'fail',t:'Dê um nome curto à façanha.'});
+  return C;
+}
+function renderChecks(){
+  const C=builderChecks(), sym={ok:'✓',warn:'!',fail:'×'};
+  $('#bchecks').innerHTML=C.map((c,i)=>`<div class="chk${c.s==='ok'&&B.last[i]&&B.last[i]!=='ok'?' stamp':''}" data-s="${c.s}"><i>${sym[c.s]}</i><span>${esc(c.t)}</span></div>`).join('');
+  B.last=C.map(c=>c.s);
+  $('#b-add').disabled=C.some(c=>c.s==='fail');
+}
+function builderExample(){
+  const ex=BEX[B.who][B.type]; Object.assign(B,ex); $('#bname').value=ex.name; B.name=ex.name; renderBuilder();
+}
+function builderAdd(){
+  if(builderChecks().some(c=>c.s==='fail')) return;
+  const w=B.who, s={n:B.name.trim(),d:stuntText()}; if(w==='pilot'&&B.nt) s.nt=true;
+  state[w].stunts.push(s); renderStunts(w); renderDerived(); save();
+  $('#builder').hidden=true;
+  const rows=$$(`#st-${w} .stunt`); const last=rows[rows.length-1]; if(last){ last.classList.add('fresh'); last.scrollIntoView({block:'nearest'}); }
+  toast(`Façanha adicionada: ${s.n}`);
+}
+
+/* ---------- utilidades ---------- */
+let toastT;
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true,3200); }
+function showText(title,hint,txt){ $('#modal-t').textContent=title; $('#modal-h').textContent=hint; const ta=$('#modal-txt'); ta.value=txt; $('#modal').hidden=false; ta.focus(); ta.select(); }
+function copyText(txt,title){
+  const fallback=()=>showText(title,'Selecione e copie o texto abaixo.',txt);
+  try{ navigator.clipboard.writeText(txt).then(()=>toast(title+': copiado'),fallback); }catch(e){ fallback(); }
+}
+function buildPrompt(w){
+  if(w==='pilot'){
+    const p=state.pilot;
+    return `Retrato de personagem no estilo de anime de robôs do fim dos anos 1970: cel pintado à mão, cores chapadas, sombras duras e traço fino. Meio corpo, olhar para o lado, expressão contida. Personagem: ${p.name||'piloto sem nome'}. ${p.desc||''} Conceito: ${p.aspects[0].t||'piloto de mobile suit'}. Traje de piloto de ${state.faction==='zeon'?'Zeon':'Federação Terrestre'}. Fundo liso cinza-azulado, sem texto, sem logotipo, proporção 3:4.`.replace(/\s+/g,' ').trim();
+  }
+  const m=state.ms;
+  return `Ilustração de ${isShip()?'nave de guerra espacial':state.ms.cls==='ma'?'mobile armor (máquina de guerra gigante sem forma humana)':'robô gigante'} no estilo de manual de montagem de kit japonês: lineart limpo, cores chapadas com sombra de cel, linhas de painel da blindagem visíveis. Vista frontal em 3/4, corpo inteiro. Máquina: ${m.name||'mobile suit'} (${cls().n.toLowerCase()}). ${m.aspects[0]||''}. ${m.aspects[1]?'Detalhe visível do defeito: '+m.aspects[1]+'.':''} Cores: ${state.faction==='zeon'?'verde-oliva com detalhes em vinho':'branco, azul e vermelho com detalhes amarelos'}. Fundo branco, sem texto, sem logotipo, proporção 4:3.`.replace(/\s+/g,' ').trim();
+}
+function readImg(file,max,cb){
+  const r=new FileReader();
+  r.onload=()=>{ const im=new Image(); im.onload=()=>{ const s=Math.min(1,max/Math.max(im.width,im.height)); const c=document.createElement('canvas'); c.width=Math.round(im.width*s); c.height=Math.round(im.height*s); c.getContext('2d').drawImage(im,0,0,c.width,c.height); cb(c.toDataURL('image/jpeg',.86)); }; im.onerror=()=>toast('Não consegui ler essa imagem.'); im.src=r.result; };
+  r.readAsDataURL(file);
+}
+const slug=s=>String(s||'').normalize('NFD').replace(/\p{Mn}/gu,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+let dl=null;
+try{ if(window.claude&&window.claude.use) window.claude.use('downloads').then(x=>{dl=x;}).catch(()=>{}); }catch(e){}
+async function exportSheet(){
+  const data=JSON.stringify(state,null,2);
+  const name=`${slug(state.pilot.name)||'piloto'}-${slug(state.ms.name)||'maquina'}.json`;
+  if(dl){ try{ await dl.save({filename:name,data}); toast('Ficha exportada'); return; }catch(e){ if(e&&e.code==='declined') return; } }
+  showText('Exportar ficha','Copie o texto e salve num arquivo .json. Para voltar, use Importar.',data);
+}
+function setView(v){
+  $('#v-ficha').hidden=v!=='ficha'; $('#v-manual').hidden=v!=='manual';
+  $$('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===v)));
+  try{ localStorage.setItem(VKEY,v); }catch(e){}
+}
+function arm(btn,label,armed,run){
+  if(btn.dataset.armed){ clearTimeout(btn._t); delete btn.dataset.armed; btn.textContent=label; run(); return; }
+  btn.dataset.armed='1'; btn.textContent=armed; btn._t=setTimeout(()=>{ delete btn.dataset.armed; btn.textContent=label; },3500);
+}
+
+/* ---------- eventos ---------- */
+document.addEventListener('input',e=>{
+  const el=e.target;
+  if(B&&el.dataset&&el.dataset.b){ const k=el.dataset.b, was=!!B[k]; B[k]=el.value; if(el.tagName==='INPUT'){ fitSlot(el); el.classList.toggle('filled',!!el.value); if(!was&&el.value&&!RM){ el.classList.remove('filled'); void el.offsetWidth; el.classList.add('filled'); } } renderChecks(); return; }
+  if(B&&el.id==='bname'){ B.name=el.value; renderChecks(); return; }
+  if(B&&el.id==='bnt'){ B.nt=el.checked; renderChecks(); return; }
+  const p=el.dataset&&el.dataset.bind; if(!p) return;
+  let v=el.value; if(el.hasAttribute('data-num')) v=Math.max(0,Math.min(2,parseInt(v,10)||0));
+  setPath(p,v); save();
+  if(p==='pilot.name'||p==='ms.name') renderLink();
+  if(p.startsWith('ms.weapons')||p.startsWith('ms.dmg')) renderCombat();
+});
+document.addEventListener('focusin',e=>{ const row=e.target.closest&&e.target.closest('.dcon'); if(row&&row.dataset.slot!==activeDmg){ activeDmg=row.dataset.slot; renderDamage(); } });
+document.addEventListener('change',e=>{
+  const el=e.target;
+  if(el.dataset.tier){ state.pilot.skills[el.dataset.tier][+el.dataset.idx]=el.value; renderPyramid(); renderDerived(); save(); }
+  else if(el.dataset.bind&&el.dataset.bind.startsWith('ms.weapons')){ if(el.hasAttribute('data-num')) el.value=getPath(el.dataset.bind); renderCombat(); }
+  else if(el.id==='ms-cls'){ state.ms.cls=el.value; let lost=0; Object.values(state.ms.dmg).forEach(d=>{ if(d.loc&&!zoneOk(d.loc)){ d.loc=''; lost++; } }); if(lost) toast(`${lost} local${lost>1?'is':''} de avaria não existe${lost>1?'m':''} neste corpo e foi${lost>1?'ram':''} limpo${lost>1?'s':''}.`); renderImages(); Object.keys(state.ms.sys).forEach(k=>state.ms.sys[k]=Math.min(state.ms.sys[k],sysMax(k))); renderSys(); renderDerived(); save(); }
+  else if(el.id==='f-pilot-img'||el.id==='f-ms-img'){ const f=el.files&&el.files[0]; if(!f) return; const w=el.id==='f-pilot-img'?'pilot':'ms'; readImg(f,720,url=>{ state[w].img=url; renderImages(); save(); }); el.value=''; }
+  else if(el.id==='f-import'){ const f=el.files&&el.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ state=normalize(JSON.parse(r.result)); renderAll(); save(); toast('Ficha importada'); }catch(err){ toast('Esse arquivo não é uma ficha válida.'); } }; r.readAsText(f); el.value=''; }
+});
+document.addEventListener('click',e=>{
+  const row=e.target.closest('.dcon');
+  if(row&&!e.target.closest('button')&&row.dataset.slot!==activeDmg){ activeDmg=row.dataset.slot; renderDamage(); }
+  const t=e.target.closest('button'); if(!t) return;
+  const d=t.dataset;
+  if(d.build){ openBuilder(d.build); }
+  else if(d.btype){ B.type=d.btype; renderBuilder(); }
+  else if(d.bwho){ B.who=d.bwho; renderBuilder(); }
+  else if(t.id==='trade'){ state.pilot.trade=!state.pilot.trade; renderDerived(); save(); }
+  else if(d.fac){ state.faction=d.fac; renderFaction(); renderImages(); save(); }
+  else if(d.view){ setView(d.view); }
+  else if(d.show){ state.show=d.show; renderShow(); save(); }
+  else if(d.mode&&t.tagName==='BUTTON'){ state.mode=d.mode; renderMode(); renderCockpit(false); window.scrollTo({top:0}); save(); }
+  else if(t.id==='cockpit'){ state.cockpit=!state.cockpit; renderCockpit(true); save(); }
+  else if(d.opp!=null){ state.opp=+d.opp; renderCombat(); save(); }
+  else if(d.tile!=null){ rollAction(+d.tile); }
+  else if(d.fp){ state.pilot.fp=Math.max(0,state.pilot.fp+(+d.fp)); renderFP(); save(); }
+  else if(d.nt!=null){ const i=+d.nt, on=!state.pilot.aspects[i].nt; state.pilot.aspects.forEach(a=>a.nt=false); state.pilot.aspects[i].nt=on; renderNT(on?i:null); save(); }
+  else if(d.roll!=null){ if(d.roll) roll(d.roll,[P(d.roll)]); }
+  else if(d.box){ if(t.disabled) return; const v=!getPath(d.box); setPath(d.box,v?1:0); t.setAttribute('aria-pressed',String(v)); save(); }
+  else if(d.sys){ const k=d.sys, nv=state.ms.sys[k]+(+d.d); if(nv<0||nv>sysMax(k)) return; if(+d.d>0&&sysUsed()>=PTS) return; state.ms.sys[k]=nv; renderSys(); renderDerived(); save(); }
+  else if(d.zone&&t.closest('#dfig')){ if(activeDmg==='sh'){ toast('O escudo não tem local. Escolha outra linha de avaria.'); return; } const slot=state.ms.dmg[activeDmg]; slot.loc=slot.loc===d.zone?'':d.zone; renderDamage(); renderSys(); renderCombat(); save(); }
+  else if(d.clearloc){ state.ms.dmg[d.clearloc].loc=''; activeDmg=d.clearloc; renderDamage(); renderSys(); renderCombat(); save(); }
+  else if(d.addStunt){ const w=d.addStunt, L=w==='pilot'?P_ST:M_ST, id=$('#lib-'+w).value; if(state[w].stunts.some(s=>s.id===id)){ toast('Essa façanha já está na ficha.'); return; } state[w].stunts.push(lib(L,id)); renderStunts(w); renderDerived(); save(); }
+  else if(d.blankStunt){ const w=d.blankStunt; state[w].stunts.push({n:'',d:''}); renderStunts(w); renderDerived(); save(); const ins=$$(`#st-${w} .stunt input`); if(ins.length) ins[ins.length-1].focus(); }
+  else if(d.delStunt){ state[d.delStunt].stunts.splice(+d.i,1); renderStunts(d.delStunt); renderDerived(); save(); }
+  else if(t.id==='add-w'){ state.ms.weapons.push({n:'',sk:'Atirar',w:2,r:'1',note:''}); renderWeapons(); save(); const ins=$$('#wpn .nm'); if(ins.length) ins[ins.length-1].focus(); }
+  else if(d.delW!=null){ state.ms.weapons.splice(+d.delW,1); renderWeapons(); renderCombat(); save(); }
+  else if(d.prompt){ copyText(buildPrompt(d.prompt),d.prompt==='pilot'?'Prompt do retrato':'Prompt da máquina'); }
+  else if(d.rmimg){ state[d.rmimg].img=''; renderImages(); save(); }
+  else if(d.act){
+    const a=d.act;
+    if(a==='roll4') roll('4dF',[]);
+    else if(a==='close-tray'){ tray.token++; $('#tray-card').hidden=true; $('#tray-pill').hidden=false; }
+    else if(a==='invoke'){ if(!tray.cur||!spend()) return; tray.cur.bonus+=2; paintTotal(); }
+    else if(a==='reroll'){ if(!tray.cur||!spend()) return; tray.cur.dice=rand4(); animateDice(); }
+    else if(a==='close-modal'){ $('#modal').hidden=true; }
+    else if(a==='close-builder'){ $('#builder').hidden=true; }
+    else if(a==='b-example'){ builderExample(); }
+    else if(a==='b-add'){ builderAdd(); }
+    else if(a==='example'){ state=example(); renderAll(); save(); toast('Exemplo carregado: Lalah Sune e MAN-08 Elmeth'); }
+    else if(a==='export'){ exportSheet(); }
+    else if(a==='new'){ arm(t,'Nova ficha','Confirmar: apagar tudo',()=>{ const f=state.faction; state=blank(); state.faction=f; renderAll(); save(); toast('Ficha limpa'); }); }
+    else if(a==='eject'){ arm(t,'Ejetar','Confirmar ejeção',()=>{ const nd=dslots().filter(([k])=>state.ms.dmg[k].t||state.ms.dmg[k].loc).length; state.pilot.fp+=1+nd; state.cockpit=false; renderFP(); renderCockpit(false); save(); toast(`Ejetou: +${1+nd} pontos de destino. Anote o aspecto de campanha "Sem máquina".`); }); }
+  }
+});
+document.addEventListener('keydown',e=>{ if(e.key!=='Escape') return; if(!$('#modal').hidden) $('#modal').hidden=true; else if(!$('#builder').hidden) $('#builder').hidden=true; });
+$('#builder').addEventListener('click',e=>{ if(e.target.id==='builder') $('#builder').hidden=true; });
+$('#modal').addEventListener('click',e=>{ if(e.target.id==='modal') $('#modal').hidden=true; });
+
+/* ---------- início ---------- */
+buildAspects(); buildTracks(); buildSelects();
+try { const old=localStorage.getItem(KEY); if(old&&!JSON.parse(old).equipmentVersion&&!localStorage.getItem(KEY+'.equipment-backup'))localStorage.setItem(KEY+'.equipment-backup',old); }catch{}
+equipment=new FGEquipment.UI({root:document,state:()=>state,editable:()=>true,mode:()=>state.mode,rating,eff,roll,render:renderAll,save,notify:toast});
+const eqcb=document.createElement('div');eqcb.dataset.eqPlay='ms';$('#cb-right').appendChild(eqcb);
+$('#v-manual .toc').insertAdjacentHTML('beforeend','<a href="#m-equipment">Equipamentos</a>');
+$('#v-manual .toc').nextElementSibling.insertAdjacentHTML('beforeend',FGEquipment.manual);
+renderAll();
+let v='ficha'; try{ v=localStorage.getItem(VKEY)||'ficha'; }catch(e){}
+if(location.hash&&(location.hash.indexOf('#m-')===0||location.hash==='#manual')) v='manual';
+setView(v==='manual'?'manual':'ficha');
+if(fresh) $('#file-note').textContent='A ficha abre com o exemplo de Lalah Sune e a Elmeth. "Nova ficha" limpa tudo; o que você escrever fica salvo neste navegador.';
+})();
+</script>

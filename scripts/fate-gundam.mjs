@@ -1,3 +1,6 @@
+import "./equipment.js";
+import "./equipment-ui.js";
+import "./equipment-manual.js";
 /**
  * Fate Gundam — ficha de piloto e mobile suit para Fate Core no Foundry VTT.
  * A ficha guarda tudo num flag do ator (flags.fate-gundam.json) e funciona com qualquer sistema.
@@ -16,7 +19,7 @@ const ladder = n => n > 8 ? "Além de Lendário" : n < -2 ? "Abaixo de Terrível
 const sgn = n => (n < 0 ? "−" : "+") + Math.abs(n);
 const PTS = 5, MAX = 2;
 const CLASSES = {
-  massa: {n:"Produção em massa",ex:"Zaku II, GM",scale:2,st:2,perk:"Peça sobrando: uma vez por sessão, entre cenas, apague uma Avaria suave sem rolar Ofícios."},
+  massa: {n:"Produção em massa",ex:"Zaku II, GM",scale:2,st:2,perk:"Peça sobrando: uma vez por sessão, entre cenas, inicie a recuperação de uma Avaria suave sem rolar Ofícios (a vaga só libera após uma cena inteira)."},
   custom: {n:"MS de ás",ex:"Zaku II de Char",scale:2,st:2,perk:"Pintura conhecida: no começo de cada conflito, o aspecto Marca vem com uma invocação grátis."},
   proto: {n:"Protótipo",ex:"RX-78-2 Gundam",scale:2,st:3,perk:"Uma façanha de sistema a mais. Em troca, o mestre começa cada sessão com uma invocação grátis do Defeito."},
   ma: {n:"Mobile armor",ex:"Elmeth, Big Zam",scale:3,st:2,lock:{comb:0},perk:"Escala 3. Combate fica travado em +0, e quem luta corpo a corpo contra ela ganha +2."},
@@ -246,6 +249,7 @@ function template() {
           </div>
         </div></article>
 
+        <article class="panel"><div class="in" data-eq-editor="pilot"></div></article>
         <article class="panel" style="--i:4" data-id="pn-pstress"><div class="in">
           <header class="hd red"><h2>Estresse e consequências</h2><span class="kana">ストレス</span></header>
           <div class="dmg-grid">
@@ -301,10 +305,7 @@ function template() {
         </div></article>
 
         <article class="panel" style="--i:5"><div class="in">
-          <header class="hd"><h2>Armamento</h2><span class="kana">武装</span></header>
-          <div data-id="wpn"></div>
-          <div class="adder"><button type="button" class="btn sm fac" data-act="add-w">Adicionar arma</button></div>
-          <p class="hint">Arma:1 ou Arma:2. O tamanho da máquina já entra pela escala. Os ataques rolam no modo de combate.</p>
+          <div data-eq-editor="ms"></div>
         </div></article>
 
         <article class="panel" style="--i:6" data-id="pn-mdmg"><div class="in">
@@ -385,7 +386,7 @@ function manual() {
           <tr><td class="k">Vigor</td><td>Manobra extrema (criar vantagem)</td><td>Posição que ninguém aguentaria. Falhou: estresse físico igual à diferença, pela força G.</td></tr>
           <tr><td class="k">Conhecimentos</td><td>Ler o inimigo (criar vantagem)</td><td>Revela ou cria um aspecto do MS inimigo (<i>Junta do joelho exposta</i>).</td></tr>
           <tr><td class="k">Comunicação</td><td>Ordem pelo rádio (criar vantagem)</td><td>A invocação grátis vai para um aliado.</td></tr>
-          <tr><td class="k">Ofícios</td><td>Remendo na cabine (superar)</td><td>Gasta a ação; contra Ótimo (+4), apaga uma Avaria suave.</td></tr>
+          <tr><td class="k">Ofícios</td><td>Remendo na cabine (superar)</td><td>Gasta a ação; contra Ótimo (+4), restaura funcionamento até o fim da cena, sem apagar a avaria.</td></tr>
         </tbody>
       </table></div>
       <div class="prose"><p>Lista de perícias: Atirar, Atletismo, Comunicação, Conhecimentos, Contatos, Empatia, Enganar, Furtividade, Investigação, Lutar, Ofícios, Percepção, <b>Pilotagem</b>, Provocar, Recursos, Roubo, Vigor, Vontade. Atletismo não funciona dentro da máquina.</p></div>
@@ -672,7 +673,7 @@ class SheetUI {
     if (raw) { try { s = normalize(JSON.parse(raw)); } catch (e) { s = null; } }
     if (!s) { s = blank(); s.pilot.name = this.actor.name; }
     s.pilot.name = this.actor.name;
-    this.state = s;
+    this.state = FGEquipment.migrate(s);
   }
   save() {
     this.dirty = true;
@@ -684,6 +685,8 @@ class SheetUI {
     if (!this.dirty || !this.app.isEditable) return;
     this.dirty = false;
     const data = {[`flags.${MOD}.json`]: JSON.stringify(this.state)};
+    const old=this.actor.getFlag(MOD,"json");
+    if(old && !this.actor.getFlag(MOD,"equipmentBackup")) {try {if(!JSON.parse(old).equipmentVersion) data[`flags.${MOD}.equipmentBackup`]=old;}catch{}}
     const nm = (this.state.pilot.name || "").trim();
     if (nm && nm !== this.actor.name) data.name = nm;
     this.app._lastSave = Date.now();
@@ -713,6 +716,10 @@ class SheetUI {
   /* montagem */
   init() {
     this.buildStatic();
+    this.equipment = new FGEquipment.UI({root:this.root,state:()=>this.state,editable:()=>this.app.isEditable,mode:()=>this.mode(),rating:n=>this.rating(n),eff:k=>this.eff(k),roll:(...a)=>this.roll(...a),render:()=>this.renderAll(),save:()=>this.save(),notify:t=>ui.notifications.info(t)});
+    const cb=document.createElement('div');cb.dataset.eqPlay='ms';this.$('#cb-right').appendChild(cb);
+    this.$('#v-manual .toc').insertAdjacentHTML('beforeend','<button type="button" data-goto="m-equipment">Equipamentos</button>');
+    this.$('#v-manual .toc').nextElementSibling.insertAdjacentHTML('beforeend',FGEquipment.manual);
     this.renderAll();
     this.attach();
     this.attachBuilder();
@@ -749,11 +756,7 @@ class SheetUI {
       const tag = this.$(".tag.lock", row); tag.hidden = !msg; tag.textContent = msg; row.classList.toggle("locked", !!msg);
     });
   }
-  renderWeapons() {
-    const ws = this.state.ms.weapons, el = this.$("#wpn");
-    el.innerHTML = ws.length ? ws.map((w, i) => `<div class="wpn"><input type="text" class="nm" data-bind="ms.weapons.${i}.n" placeholder="Nome da arma" aria-label="Nome da arma"><select class="sk-s" data-bind="ms.weapons.${i}.sk" aria-label="Perícia que dispara">${WSK.map(k => `<option>${k}</option>`).join("")}</select><label class="w"><span>Arma</span><input type="number" min="0" max="2" data-bind="ms.weapons.${i}.w" data-num aria-label="Valor de Arma"></label><select class="r" data-bind="ms.weapons.${i}.r" aria-label="Alcance">${RANGES.map(([v, n]) => `<option value="${v}">${n}</option>`).join("")}</select><button type="button" class="x" data-del-w="${i}" aria-label="Remover arma">×</button><input type="text" class="note" data-bind="ms.weapons.${i}.note" placeholder="Nota: munição, efeito, aspecto da arma" aria-label="Nota da arma"></div>`).join("") : '<p class="empty">Nenhuma arma ainda.</p>';
-    this.bindValues(el);
-  }
+  renderWeapons() { this.equipment?.render(); }
   renderSys() {
     const used = this.sysUsed(), c = this.state.ms.cls;
     this.$("#sys").innerHTML = SYS.map(s => { const v = this.state.ms.sys[s.k], mx = sysMax(s.k, c), d = this.downBy(s.k);
@@ -847,19 +850,16 @@ class SheetUI {
     if (this.pHas("flash") && nt) A.push({kind:"Defender",n:"Flash Newtype",nt:true,parts:[P("Empatia"),S("mob")],note:"Uma vez por conflito."});
     A.push({kind:"Superar",n:this.isShip() ? "Manobrar a nave" : "Mover e perseguir",parts:[P("Pilotagem"),S("mob")]});
     A.push({kind:"Notar",n:"Detectar e turno",parts:[P("Percepção"),S("sens")],note:"Sob Minovsky densa, Sensores só somam até a zona ao lado."});
-    this.state.ms.weapons.forEach(w => {
-      const k = w.sk === "Lutar" ? "comb" : "mira", ok = w.sk !== "Vontade" || (nt && this.msHas("psy"));
-      A.push({kind:"Atacar",n:w.n || "Arma sem nome",nt:w.sk === "Vontade",warn:!ok,w:+w.w || 0,parts:[P(w.sk),S(k)],note:ok ? "" : "Armas psicomu exigem aspecto NT e Psicomunicador."});
-    });
+    A.push(...this.equipment.actions("ms"));
     if (!this.state.ms.weapons.some(w => w.sk === "Lutar") && !this.isShip()) A.push({kind:"Atacar",n:"Golpe corpo a corpo",w:0,parts:[P("Lutar"),S("comb")]});
     if (this.pHas("press") && nt) A.push({kind:"Atacar",n:"Pressão",nt:true,mental:true,w:0,parts:[P("Vontade")],note:"Ataque mental; o alvo defende com Vontade."});
     A.push({kind:"Criar vantagem",n:"Manobra extrema",parts:[P("Vigor")].concat(this.pHas("g") ? [{l:"Corpo de piloto de teste",v:2}] : []),note:"Falhou: estresse físico igual à diferença."});
     A.push({kind:"Criar vantagem",n:"Ler o inimigo",parts:[P("Conhecimentos")],note:"Revela ou cria um aspecto da máquina inimiga."});
     A.push({kind:"Criar vantagem",n:"Ordem pelo rádio",parts:[P("Comunicação")],note:"A invocação grátis vai para um aliado."});
-    A.push({kind:"Superar",n:"Remendo na cabine",parts:[P("Ofícios")],note:`Contra ${this.pHas("mec") ? "Razoável (+2)" : "Ótimo (+4)"}: apaga uma Avaria suave. Gasta sua ação.`});
+    A.push({kind:"Superar",n:"Remendo na cabine",parts:[P("Ofícios")],note:`Contra ${this.pHas("mec") ? "Razoável (+2)" : "Ótimo (+4)"}: restaura funcionamento até o fim da cena, sem apagar a avaria. Gasta sua ação.`});
     return A;
   }
-  scaleDiff(a) { if (a.mental || !(a.kind === "Atacar" || a.kind === "Defender")) return 0; return this.cls().scale - this.state.opp; }
+  scaleDiff(a) { if (a.mental || !(a.kind === "Atacar" || a.kind === "Defender")) return 0; return (a.gear ? FGEquipment.threat(this.state,a.who,FGEquipment.get(this.state,a.who,a.gear)) : this.cls().scale) - this.state.opp; }
   withScale(a) { const d = this.scaleDiff(a), parts = a.parts.slice(); if (d > 0) parts.push({l:"Escala",v:d}); return {parts, d}; }
   renderCombat() {
     if (!this.state.cockpit) return;
@@ -871,9 +871,10 @@ class SheetUI {
   }
   rollAction(i) {
     const a = this.actions()[i]; if (!a) return;
+    if (a.gear) return this.equipment.use(a.who,a.gear);
     const {parts, d} = this.withScale(a), notes = [];
     if (a.note) notes.push(a.note);
-    if (a.kind === "Atacar" && !a.mental) { const extra = (a.w || 0) + (d > 0 ? 2 * d : 0); notes.push(`Se acertar: +${extra} tensões${a.w ? ` (Arma:${a.w}` : ""}${d > 0 ? `${a.w ? ", " : " ("}escala +${2 * d}` : ""}${a.w || d > 0 ? ")" : ""}.`); }
+    if (a.kind === "Atacar" && !a.mental) { const extra = (a.w || 0) + (d > 0 ? 2 * d : 0); notes.push(`Ao empatar ou superar a defesa: +${extra} tensões${a.w ? ` (Arma:${a.w}` : ""}${d > 0 ? `${a.w ? ", " : " ("}escala +${2 * d}` : ""}${a.w || d > 0 ? ")" : ""}.`); }
     if (d < 0 && (a.kind === "Atacar" || a.kind === "Defender")) notes.push(`O oponente é maior: ele soma +${-d} contra você.`);
     this.roll(a.n, parts, notes.join(" "), !!a.warn);
   }
@@ -891,7 +892,7 @@ class SheetUI {
         <div class="vmeta"><span><span class="vk">Recarga</span><b>${ref}</b></span><span><span class="vk">Pontos de destino</span><b>${p.fp}</b><span class="pips">${Array.from({length:Math.max(ref, p.fp)}, (_, i) => `<i class="pip${i < p.fp ? " on" : ""}"></i>`).join("")}</span></span></div></div></header>
       <section class="vsec"><h3>Aspectos</h3><dl class="vasp">${asp}</dl></section>
       <section class="vsec"><h3>Perícias <small>clique para rolar</small></h3><div class="vsk">${sk || '<p class="vnone">Sem perícias na pirâmide.</p>'}</div></section>
-      <section class="vsec"><h3>Façanhas</h3><div class="vlist">${pst}</div></section>`;
+      <section class="vsec"><h3>Façanhas</h3><div class="vlist">${pst}</div></section><div data-eq-play="pilot"></div>`;
     const sys = SYS.map(x => { const v = m.sys[x.k], d = this.downBy(x.k); return `<div class="vsys-r${d && v ? " down" : ""}"><span>${x.n}</span><div class="vbar">${Array.from({length:MAX}, (_, i) => `<i class="${i < v ? "on" : ""}"></i>`).join("")}</div><b>${sgn(v)}</b>${d && v ? `<small>Zerado pela avaria em ${esc(d)}</small>` : ""}</div>`; }).join("");
     const mst = m.stunts.length ? m.stunts.map(x => `<div class="it"><b>${esc(x.n || "Sem nome")}</b><p>${esc(x.d || "")}</p></div>`).join("") : '<p class="vnone">Sem façanhas de sistema.</p>';
     const rng = r => (RANGES.find(x => x[0] === String(r)) || RANGES[0])[1].toLowerCase();
@@ -902,7 +903,8 @@ class SheetUI {
       <section class="vsec"><h3>Sistemas</h3><div class="vsys">${sys}</div></section>
       <section class="vsec"><h3>${c.n}</h3><p class="vperk">${c.perk}</p></section>
       <section class="vsec"><h3>Façanhas de sistema</h3><div class="vlist">${mst}</div></section>
-      <section class="vsec"><h3>Armamento <small>rola no modo de combate</small></h3><div class="vwpn">${wpn}</div></section>`;
+      <div data-eq-play="ms"></div>`;
+    this.equipment?.render();
   }
   renderMode() {
     const mode = this.mode();
@@ -924,10 +926,11 @@ class SheetUI {
     this.$("#cockpit").setAttribute("aria-pressed", String(on));
     this.$("#hatch-lbl").textContent = on ? "Sair da cabine" : "Entrar na cabine";
     const play = this.mode() === "play";
-    this.$("#link-note").innerHTML = on ? "Modo de combate: cada ação já soma <b>perícia + sistema</b>. Clique para rolar no chat." : (play ? "Ficha de jogo: só estresse e consequências mudam aqui. Feche a escotilha para lutar." : "Modo de edição: monte e ajuste a ficha. Use Jogar para a ficha limpa.");
+    this.$("#link-note").innerHTML = on ? "Modo de combate: cada ação já soma <b>perícia + sistema</b>. Clique para rolar no chat." : (play ? "Ficha de jogo: estresse, consequências e consumo de equipamentos acompanham a missão. Feche a escotilha para lutar." : "Modo de edição: monte e ajuste a ficha. Use Jogar para a ficha limpa.");
     this.$("#combat").hidden = !on; this.$("#cols").hidden = on || play; this.$("#view").hidden = on || !play; this.$("#mswitch").hidden = on;
     this.placePanels();
     if (on) this.renderCombat();
+    this.equipment?.render();
     if (animate && on && !this.RM) { const sc = this.$("#scan"); sc.style.setProperty("--h", this.$("#combat").offsetHeight + "px"); sc.classList.remove("go"); void sc.offsetWidth; sc.classList.add("go"); }
   }
   renderFaction() {
@@ -953,13 +956,15 @@ class SheetUI {
 
   /* dados: rola no chat e mostra na bandeja */
   async roll(title, parts, note, warn) {
+    this.equipment?.resetResult();
     const mod = parts.reduce((a, p) => a + p.v, 0);
     const r = await new Roll(`4dF + ${mod}`).evaluate();
     const dice = (r.dice[0]?.results || []).map(x => x.result);
-    this.cur = {title, parts, bonus:0, dice, roll:r};
+    this.cur = {title, parts, bonus:0, dice, roll:r, note};
     await this.toChat(r, title, parts, note);
     this.showTray(title, note, warn);
     this.animateDice();
+    return r.total;
   }
   async toChat(r, title, parts, note, extra) {
     const brk = parts.map(p => `${esc(p.l)} ${sgn(p.v)}`).join(" · ");
@@ -984,10 +989,12 @@ class SheetUI {
   }
   paintTotal() {
     const c = this.cur, ds = c.dice.reduce((a, b) => a + b, 0), base = c.parts.reduce((a, p) => a + p.v, 0), tot = base + ds + c.bonus;
+    this.equipment?.paintResult(tot);
     this.t$("#tr-total").textContent = sgn(tot); this.t$("#tr-ladder").textContent = ladder(tot);
     this.t$("#tr-brk").textContent = [...c.parts.map(p => `${p.l} ${sgn(p.v)}`), `dados ${sgn(ds)}`, ...(c.bonus ? [`invocações ${sgn(c.bonus)}`] : [])].join(" · ");
   }
   spend() {
+    if (!this.app.isEditable) return false;
     if (this.t$("#tr-free").checked) return true;
     if (this.state.pilot.fp <= 0) { ui.notifications.warn("Sem pontos de destino. Marque \"grátis\" se for uma invocação gratuita."); return false; }
     this.state.pilot.fp--; this.renderFP(); this.save(); return true;
@@ -1003,7 +1010,7 @@ class SheetUI {
     const c = this.cur, mod = c.parts.reduce((a, p) => a + p.v, 0) + c.bonus;
     const r = await new Roll(`4dF + ${mod}`).evaluate();
     c.dice = (r.dice[0]?.results || []).map(x => x.result); c.roll = r;
-    await this.toChat(r, `${c.title} (rerrolagem)`, c.parts.concat(c.bonus ? [{l:"invocações", v:c.bonus}] : []), "");
+    await this.toChat(r, `${c.title} (rerrolagem)`, c.parts.concat(c.bonus ? [{l:"invocações", v:c.bonus}] : []), c.note || "");
     this.animateDice();
   }
 
@@ -1035,6 +1042,7 @@ class SheetUI {
   attach() {
     const R = this.root, st = () => this.state;
     R.addEventListener("input", e => {
+      if (!this.app.isEditable) return;
       const el = e.target, p = el.dataset && el.dataset.bind; if (!p) return;
       let v = el.value; if (el.hasAttribute("data-num")) v = Math.max(0, Math.min(2, parseInt(v, 10) || 0));
       this.setPath(p, v); this.save();
@@ -1043,6 +1051,7 @@ class SheetUI {
     });
     R.addEventListener("focusin", e => { const row = e.target.closest && e.target.closest(".dcon"); if (row && row.dataset.slot !== this.activeDmg) { this.activeDmg = row.dataset.slot; this.renderDamage(); } });
     R.addEventListener("change", e => {
+      if (!this.app.isEditable) return;
       const el = e.target;
       if (el.dataset.tier) { st().pilot.skills[el.dataset.tier][+el.dataset.idx] = el.value; this.renderPyramid(); this.renderDerived(); this.save(); }
       else if (el.dataset.bind && el.dataset.bind.startsWith("ms.weapons")) { if (el.hasAttribute("data-num")) el.value = this.getPath(el.dataset.bind); this.renderCombat(); }
